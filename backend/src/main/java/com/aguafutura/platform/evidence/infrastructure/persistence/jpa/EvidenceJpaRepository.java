@@ -8,5 +8,9 @@ import java.util.UUID;
 
 @Repository
 public interface EvidenceJpaRepository extends JpaRepository<EvidenceJpaEntity, UUID> {
-    List<EvidenceJpaEntity> findByReferenceTypeAndReferenceIdOrderByCreatedAtDesc(String referenceType, UUID referenceId);
+    List<EvidenceJpaEntity> findByTenantIdAndReferenceTypeAndReferenceIdOrderByCreatedAtDesc(
+            UUID tenantId,
+            String referenceType,
+            UUID referenceId
+    );
 }

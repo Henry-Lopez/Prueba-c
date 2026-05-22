@@ -66,9 +66,12 @@ public class EvidenceController {
     @GetMapping("/{referenceType}/{referenceId}")
     public ResponseEntity<List<EvidenceResponse>> list(
             @PathVariable ReferenceType referenceType,
-            @PathVariable UUID referenceId
+            @PathVariable UUID referenceId,
+            Authentication authentication
     ) {
-        List<EvidenceResponse> evidences = listEvidenceUseCase.execute(referenceType, referenceId)
+        UUID tenantId = UUID.fromString(authentication.getDetails().toString());
+
+        List<EvidenceResponse> evidences = listEvidenceUseCase.execute(tenantId, referenceType, referenceId)
                 .stream()
                 .map(this::toResponse)
                 .toList();
@@ -76,14 +79,20 @@ public class EvidenceController {
         return ResponseEntity.ok(evidences);
     }
 
-    // Endpoint to download/view the file directly
-    @GetMapping("/download/{tenantId}/{fileName}")
+    @GetMapping("/download/{fileName}")
     public ResponseEntity<Resource> downloadFile(
-            @PathVariable String tenantId,
-            @PathVariable String fileName
+            @PathVariable String fileName,
+            Authentication authentication
     ) {
         try {
-            Path filePath = Paths.get("uploads").resolve(tenantId).resolve(fileName).normalize();
+            UUID tenantId = UUID.fromString(authentication.getDetails().toString());
+            Path uploadRoot = Paths.get("uploads").toAbsolutePath().normalize();
+            Path filePath = uploadRoot.resolve(tenantId.toString()).resolve(fileName).normalize();
+
+            if (!filePath.startsWith(uploadRoot.resolve(tenantId.toString()).normalize())) {
+                return ResponseEntity.badRequest().build();
+            }
+
             Resource resource = new UrlResource(filePath.toUri());
 
             if (resource.exists() || resource.isReadable()) {
@@ -105,10 +114,8 @@ public class EvidenceController {
     }
 
     private EvidenceResponse toResponse(Evidence evidence) {
-        // En un caso real, esto sería una URL pre-firmada de S3.
-        // Aquí construimos una URL que apunte a nuestro endpoint de descarga local.
         String fileName = evidence.getFilePath().substring(evidence.getFilePath().lastIndexOf("/") + 1);
-        String url = "/api/v1/evidence/download/" + evidence.getTenantId() + "/" + fileName;
+        String url = "/api/v1/evidence/download/" + fileName;
 
         return new EvidenceResponse(
                 evidence.getId(),

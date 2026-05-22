@@ -4,7 +4,5 @@ public enum UserRole {
     ADMIN,
     COORDINATOR,
     TECHNICIAN,
-    AUDITOR,
-    CITIZEN,
-    TEACHER
+    AUDITOR
 }

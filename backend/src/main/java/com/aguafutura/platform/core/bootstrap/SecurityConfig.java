@@ -4,6 +4,7 @@ import com.aguafutura.platform.iam.bootstrap.JwtAuthenticationFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -43,7 +44,6 @@ public class SecurityConfig {
                                 "/tester.html",
                                 "/api/v1/tenants",
                                 "/api/v1/tenants/**",
-                                "/api/v1/evidence/download/**",
                                 "/actuator/health",
                                 "/actuator/info",
                                 "/actuator/metrics",
@@ -52,6 +52,33 @@ public class SecurityConfig {
                                 "/api-docs/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
+                        .requestMatchers("/api/v1/auth/me").authenticated()
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/v1/zones",
+                                "/api/v1/assets",
+                                "/api/v1/consumptions",
+                                "/api/v1/incidents",
+                                "/api/v1/work-orders"
+                        ).hasAnyRole("ADMIN", "COORDINATOR")
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/v1/zones",
+                                "/api/v1/zones/**",
+                                "/api/v1/assets",
+                                "/api/v1/assets/**",
+                                "/api/v1/consumptions/**",
+                                "/api/v1/incidents",
+                                "/api/v1/incidents/**"
+                        ).hasAnyRole("ADMIN", "COORDINATOR", "AUDITOR")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/work-orders", "/api/v1/work-orders/**")
+                        .hasAnyRole("ADMIN", "COORDINATOR", "TECHNICIAN", "AUDITOR")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/evidence")
+                        .hasAnyRole("ADMIN", "COORDINATOR", "TECHNICIAN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/evidence/**")
+                        .hasAnyRole("ADMIN", "COORDINATOR", "TECHNICIAN", "AUDITOR")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/analytics/**")
+                        .hasAnyRole("ADMIN", "COORDINATOR", "AUDITOR")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/ai/**")
+                        .hasAnyRole("ADMIN", "COORDINATOR")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(
