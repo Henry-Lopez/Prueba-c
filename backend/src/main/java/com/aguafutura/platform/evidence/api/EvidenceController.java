@@ -1,5 +1,6 @@
 package com.aguafutura.platform.evidence.api;
 
+import jakarta.servlet.http.HttpServletRequest;
 import com.aguafutura.platform.evidence.application.ListEvidenceUseCase;
 import com.aguafutura.platform.evidence.application.UploadEvidenceUseCase;
 import com.aguafutura.platform.evidence.domain.Evidence;
@@ -42,13 +43,17 @@ public class EvidenceController {
             @RequestParam("referenceType") ReferenceType referenceType,
             @RequestParam("referenceId") UUID referenceId,
             @RequestParam("file") MultipartFile file,
-            Authentication authentication
+            Authentication authentication,
+            HttpServletRequest servletRequest
     ) throws IOException {
         
         UUID tenantId = UUID.fromString(authentication.getDetails().toString());
 
         Evidence evidence = uploadEvidenceUseCase.execute(
                 tenantId,
+                actorId(authentication),
+                actorRole(authentication),
+                correlationId(servletRequest),
                 referenceType,
                 referenceId,
                 file.getOriginalFilename(),
@@ -118,5 +123,22 @@ public class EvidenceController {
                 url,
                 evidence.getCreatedAt()
         );
+    }
+
+    private UUID actorId(Authentication authentication) {
+        return UUID.fromString(authentication.getName());
+    }
+
+    private String actorRole(Authentication authentication) {
+        return authentication.getAuthorities()
+                .stream()
+                .findFirst()
+                .map(authority -> authority.getAuthority().replaceFirst("^ROLE_", ""))
+                .orElse(null);
+    }
+
+    private String correlationId(HttpServletRequest request) {
+        Object correlationId = request.getAttribute("correlationId");
+        return correlationId != null ? correlationId.toString() : null;
     }
 }

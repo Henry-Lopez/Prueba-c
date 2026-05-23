@@ -1,5 +1,6 @@
 package com.aguafutura.platform.evidence.bootstrap;
 
+import com.aguafutura.platform.core.application.port.AuditLogPort;
 import com.aguafutura.platform.evidence.application.ListEvidenceUseCase;
 import com.aguafutura.platform.evidence.application.UploadEvidenceUseCase;
 import com.aguafutura.platform.evidence.application.port.EvidenceRepositoryPort;
@@ -13,9 +14,10 @@ public class EvidenceApplicationConfig {
     @Bean
     public UploadEvidenceUseCase uploadEvidenceUseCase(
             EvidenceRepositoryPort repositoryPort,
-            EvidenceStoragePort storagePort
+            EvidenceStoragePort storagePort,
+            AuditLogPort auditLogPort
     ) {
-        return new UploadEvidenceUseCase(repositoryPort, storagePort);
+        return new UploadEvidenceUseCase(repositoryPort, storagePort, auditLogPort);
     }
 
     @Bean

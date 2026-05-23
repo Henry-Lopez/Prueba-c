@@ -1,5 +1,7 @@
 package com.aguafutura.platform.evidence.application;
 
+import com.aguafutura.platform.core.application.port.AuditLogPort;
+import com.aguafutura.platform.core.domain.AuditLog;
 import com.aguafutura.platform.evidence.application.port.EvidenceRepositoryPort;
 import com.aguafutura.platform.evidence.application.port.EvidenceStoragePort;
 import com.aguafutura.platform.evidence.domain.Evidence;
@@ -12,14 +14,19 @@ public class UploadEvidenceUseCase {
 
     private final EvidenceRepositoryPort repository;
     private final EvidenceStoragePort storage;
+    private final AuditLogPort auditLogPort;
 
-    public UploadEvidenceUseCase(EvidenceRepositoryPort repository, EvidenceStoragePort storage) {
+    public UploadEvidenceUseCase(EvidenceRepositoryPort repository, EvidenceStoragePort storage, AuditLogPort auditLogPort) {
         this.repository = repository;
         this.storage = storage;
+        this.auditLogPort = auditLogPort;
     }
 
     public Evidence execute(
             UUID tenantId,
+            UUID actorId,
+            String actorRole,
+            String correlationId,
             ReferenceType referenceType,
             UUID referenceId,
             String fileName,
@@ -39,6 +46,18 @@ public class UploadEvidenceUseCase {
                 filePath
         );
 
-        return repository.save(evidence);
+        Evidence savedEvidence = repository.save(evidence);
+
+        auditLogPort.save(AuditLog.create(
+                tenantId,
+                actorId,
+                actorRole,
+                "EVIDENCE_UPLOADED",
+                "EVIDENCE",
+                savedEvidence.getId().toString(),
+                correlationId
+        ));
+
+        return savedEvidence;
     }
 }
