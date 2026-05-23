@@ -15,7 +15,7 @@ public class ListEvidenceUseCase {
         this.repository = repository;
     }
 
-    public List<Evidence> execute(ReferenceType referenceType, UUID referenceId) {
-        return repository.findAllByReference(referenceType, referenceId);
+    public List<Evidence> execute(UUID tenantId, ReferenceType referenceType, UUID referenceId) {
+        return repository.findAllByTenantIdAndReference(tenantId, referenceType, referenceId);
     }
 }

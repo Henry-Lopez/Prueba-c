@@ -1,5 +1,6 @@
 package com.aguafutura.platform.incidents.bootstrap;
 
+import com.aguafutura.platform.assets.application.port.AssetRepositoryPort;
 import com.aguafutura.platform.incidents.application.ListIncidentsUseCase;
 import com.aguafutura.platform.incidents.application.ReportIncidentUseCase;
 import com.aguafutura.platform.incidents.application.port.IncidentRepositoryPort;
@@ -17,8 +18,11 @@ public class IncidentsApplicationConfig {
     }
 
     @Bean
-    public ReportIncidentUseCase reportIncidentUseCase(IncidentRepositoryPort port) {
-        return new ReportIncidentUseCase(port);
+    public ReportIncidentUseCase reportIncidentUseCase(
+            IncidentRepositoryPort port,
+            AssetRepositoryPort assetRepositoryPort
+    ) {
+        return new ReportIncidentUseCase(port, assetRepositoryPort);
     }
 
     @Bean
