@@ -1,5 +1,6 @@
 package com.aguafutura.platform.workorders.api;
 
+import jakarta.servlet.http.HttpServletRequest;
 import com.aguafutura.platform.workorders.application.CreateWorkOrderUseCase;
 import com.aguafutura.platform.workorders.application.ListWorkOrdersUseCase;
 import com.aguafutura.platform.workorders.domain.WorkOrder;
@@ -29,12 +30,16 @@ public class WorkOrderController {
     @PostMapping
     public ResponseEntity<WorkOrderResponse> create(
             @RequestBody CreateWorkOrderRequest request,
-            Authentication authentication
+            Authentication authentication,
+            HttpServletRequest servletRequest
     ) {
         UUID tenantId = UUID.fromString(authentication.getDetails().toString());
 
         WorkOrder workOrder = createWorkOrderUseCase.execute(
                 tenantId,
+                actorId(authentication),
+                actorRole(authentication),
+                correlationId(servletRequest),
                 request.assetId(),
                 request.incidentId(),
                 request.description(),
@@ -74,5 +79,22 @@ public class WorkOrderController {
                 workOrder.getCompletedAt(),
                 workOrder.getCreatedAt()
         );
+    }
+
+    private UUID actorId(Authentication authentication) {
+        return UUID.fromString(authentication.getName());
+    }
+
+    private String actorRole(Authentication authentication) {
+        return authentication.getAuthorities()
+                .stream()
+                .findFirst()
+                .map(authority -> authority.getAuthority().replaceFirst("^ROLE_", ""))
+                .orElse(null);
+    }
+
+    private String correlationId(HttpServletRequest request) {
+        Object correlationId = request.getAttribute("correlationId");
+        return correlationId != null ? correlationId.toString() : null;
     }
 }

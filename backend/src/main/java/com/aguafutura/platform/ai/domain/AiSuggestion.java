@@ -9,4 +9,5 @@ public record AiSuggestion(
         String explanation,
         boolean aiUsed,
         boolean fallbackUsed
-) {}
+) {
+}

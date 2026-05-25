@@ -1,8 +1,7 @@
 package com.aguafutura.platform.workorders.application;
 
-import com.aguafutura.platform.assets.application.port.AssetRepositoryPort;
-import com.aguafutura.platform.incidents.application.port.IncidentRepositoryPort;
-import com.aguafutura.platform.incidents.domain.Incident;
+import com.aguafutura.platform.core.application.port.AuditLogPort;
+import com.aguafutura.platform.core.domain.AuditLog;
 import com.aguafutura.platform.workorders.application.port.WorkOrderRepositoryPort;
 import com.aguafutura.platform.workorders.domain.WorkOrder;
 import com.aguafutura.platform.workorders.domain.WorkOrderPriority;
@@ -12,21 +11,18 @@ import java.util.UUID;
 public class CreateWorkOrderUseCase {
 
     private final WorkOrderRepositoryPort repository;
-    private final AssetRepositoryPort assetRepositoryPort;
-    private final IncidentRepositoryPort incidentRepositoryPort;
+    private final AuditLogPort auditLogPort;
 
-    public CreateWorkOrderUseCase(
-            WorkOrderRepositoryPort repository,
-            AssetRepositoryPort assetRepositoryPort,
-            IncidentRepositoryPort incidentRepositoryPort
-    ) {
+    public CreateWorkOrderUseCase(WorkOrderRepositoryPort repository, AuditLogPort auditLogPort) {
         this.repository = repository;
-        this.assetRepositoryPort = assetRepositoryPort;
-        this.incidentRepositoryPort = incidentRepositoryPort;
+        this.auditLogPort = auditLogPort;
     }
 
     public WorkOrder execute(
             UUID tenantId,
+            UUID actorId,
+            String actorRole,
+            String correlationId,
             UUID assetId,
             UUID incidentId,
             String description,
@@ -34,18 +30,6 @@ public class CreateWorkOrderUseCase {
     ) {
         if (assetId == null) {
             throw new IllegalArgumentException("Asset ID is required to create a Work Order");
-        }
-
-        assetRepositoryPort.findByTenantIdAndId(tenantId, assetId)
-                .orElseThrow(() -> new IllegalArgumentException("Asset not found for tenant"));
-
-        if (incidentId != null) {
-            Incident incident = incidentRepositoryPort.findByTenantIdAndId(tenantId, incidentId)
-                    .orElseThrow(() -> new IllegalArgumentException("Incident not found for tenant"));
-
-            if (!incident.getAssetId().equals(assetId)) {
-                throw new IllegalArgumentException("Incident does not belong to the requested asset");
-            }
         }
 
         WorkOrder workOrder = WorkOrder.create(
@@ -56,6 +40,18 @@ public class CreateWorkOrderUseCase {
                 priority
         );
 
-        return repository.save(workOrder);
+        WorkOrder savedWorkOrder = repository.save(workOrder);
+
+        auditLogPort.save(AuditLog.create(
+                tenantId,
+                actorId,
+                actorRole,
+                "WORKORDER_CREATED",
+                "WORK_ORDER",
+                savedWorkOrder.getId().toString(),
+                correlationId
+        ));
+
+        return savedWorkOrder;
     }
 }

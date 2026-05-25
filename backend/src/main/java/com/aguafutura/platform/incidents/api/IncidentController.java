@@ -1,5 +1,6 @@
 package com.aguafutura.platform.incidents.api;
 
+import jakarta.servlet.http.HttpServletRequest;
 import com.aguafutura.platform.incidents.application.ListIncidentsUseCase;
 import com.aguafutura.platform.incidents.application.ReportIncidentUseCase;
 import com.aguafutura.platform.incidents.domain.Incident;
@@ -29,12 +30,16 @@ public class IncidentController {
     @PostMapping
     public ResponseEntity<IncidentResponse> report(
             @RequestBody ReportIncidentRequest request,
-            Authentication authentication
+            Authentication authentication,
+            HttpServletRequest servletRequest
     ) {
         UUID tenantId = UUID.fromString(authentication.getDetails().toString());
 
         Incident incident = reportIncidentUseCase.execute(
                 tenantId,
+                actorId(authentication),
+                actorRole(authentication),
+                correlationId(servletRequest),
                 request.assetId(),
                 request.title(),
                 request.description(),
@@ -71,5 +76,22 @@ public class IncidentController {
                 incident.getStatus(),
                 incident.getCreatedAt()
         );
+    }
+
+    private UUID actorId(Authentication authentication) {
+        return UUID.fromString(authentication.getName());
+    }
+
+    private String actorRole(Authentication authentication) {
+        return authentication.getAuthorities()
+                .stream()
+                .findFirst()
+                .map(authority -> authority.getAuthority().replaceFirst("^ROLE_", ""))
+                .orElse(null);
+    }
+
+    private String correlationId(HttpServletRequest request) {
+        Object correlationId = request.getAttribute("correlationId");
+        return correlationId != null ? correlationId.toString() : null;
     }
 }

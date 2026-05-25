@@ -1,6 +1,6 @@
 package com.aguafutura.platform.evidence.api;
 
-import com.aguafutura.platform.evidence.application.GetEvidenceUseCase;
+import jakarta.servlet.http.HttpServletRequest;
 import com.aguafutura.platform.evidence.application.ListEvidenceUseCase;
 import com.aguafutura.platform.evidence.application.UploadEvidenceUseCase;
 import com.aguafutura.platform.evidence.domain.Evidence;
@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -28,16 +29,13 @@ public class EvidenceController {
 
     private final UploadEvidenceUseCase uploadEvidenceUseCase;
     private final ListEvidenceUseCase listEvidenceUseCase;
-    private final GetEvidenceUseCase getEvidenceUseCase;
 
     public EvidenceController(
             UploadEvidenceUseCase uploadEvidenceUseCase,
-            ListEvidenceUseCase listEvidenceUseCase,
-            GetEvidenceUseCase getEvidenceUseCase
+            ListEvidenceUseCase listEvidenceUseCase
     ) {
         this.uploadEvidenceUseCase = uploadEvidenceUseCase;
         this.listEvidenceUseCase = listEvidenceUseCase;
-        this.getEvidenceUseCase = getEvidenceUseCase;
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -45,13 +43,17 @@ public class EvidenceController {
             @RequestParam("referenceType") ReferenceType referenceType,
             @RequestParam("referenceId") UUID referenceId,
             @RequestParam("file") MultipartFile file,
-            Authentication authentication
+            Authentication authentication,
+            HttpServletRequest servletRequest
     ) throws IOException {
         
         UUID tenantId = UUID.fromString(authentication.getDetails().toString());
 
         Evidence evidence = uploadEvidenceUseCase.execute(
                 tenantId,
+                actorId(authentication),
+                actorRole(authentication),
+                correlationId(servletRequest),
                 referenceType,
                 referenceId,
                 file.getOriginalFilename(),
@@ -69,12 +71,9 @@ public class EvidenceController {
     @GetMapping("/{referenceType}/{referenceId}")
     public ResponseEntity<List<EvidenceResponse>> list(
             @PathVariable ReferenceType referenceType,
-            @PathVariable UUID referenceId,
-            Authentication authentication
+            @PathVariable UUID referenceId
     ) {
-        UUID tenantId = UUID.fromString(authentication.getDetails().toString());
-
-        List<EvidenceResponse> evidences = listEvidenceUseCase.execute(tenantId, referenceType, referenceId)
+        List<EvidenceResponse> evidences = listEvidenceUseCase.execute(referenceType, referenceId)
                 .stream()
                 .map(this::toResponse)
                 .toList();
@@ -82,15 +81,14 @@ public class EvidenceController {
         return ResponseEntity.ok(evidences);
     }
 
-    @GetMapping("/download/{evidenceId}")
+    // Endpoint to download/view the file directly
+    @GetMapping("/download/{tenantId}/{fileName}")
     public ResponseEntity<Resource> downloadFile(
-            @PathVariable UUID evidenceId,
-            Authentication authentication
+            @PathVariable String tenantId,
+            @PathVariable String fileName
     ) {
         try {
-            UUID tenantId = UUID.fromString(authentication.getDetails().toString());
-            Evidence evidence = getEvidenceUseCase.execute(tenantId, evidenceId);
-            Path filePath = Paths.get(evidence.getFilePath()).normalize();
+            Path filePath = Paths.get("uploads").resolve(tenantId).resolve(fileName).normalize();
             Resource resource = new UrlResource(filePath.toUri());
 
             if (resource.exists() || resource.isReadable()) {
@@ -112,7 +110,10 @@ public class EvidenceController {
     }
 
     private EvidenceResponse toResponse(Evidence evidence) {
-        String url = "/api/v1/evidence/download/" + evidence.getId();
+        // En un caso real, esto sería una URL pre-firmada de S3.
+        // Aquí construimos una URL que apunte a nuestro endpoint de descarga local.
+        String fileName = evidence.getFilePath().substring(evidence.getFilePath().lastIndexOf("/") + 1);
+        String url = "/api/v1/evidence/download/" + evidence.getTenantId() + "/" + fileName;
 
         return new EvidenceResponse(
                 evidence.getId(),
@@ -122,5 +123,22 @@ public class EvidenceController {
                 url,
                 evidence.getCreatedAt()
         );
+    }
+
+    private UUID actorId(Authentication authentication) {
+        return UUID.fromString(authentication.getName());
+    }
+
+    private String actorRole(Authentication authentication) {
+        return authentication.getAuthorities()
+                .stream()
+                .findFirst()
+                .map(authority -> authority.getAuthority().replaceFirst("^ROLE_", ""))
+                .orElse(null);
+    }
+
+    private String correlationId(HttpServletRequest request) {
+        Object correlationId = request.getAttribute("correlationId");
+        return correlationId != null ? correlationId.toString() : null;
     }
 }

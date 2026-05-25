@@ -1,5 +1,6 @@
 package com.aguafutura.platform.iam.bootstrap;
 
+import com.aguafutura.platform.core.application.port.AuditLogPort;
 import com.aguafutura.platform.iam.application.LoginUseCase;
 import com.aguafutura.platform.iam.application.RegisterUserUseCase;
 import com.aguafutura.platform.iam.application.port.JwtTokenPort;
@@ -22,12 +23,14 @@ public class IamApplicationConfig {
     public RegisterUserUseCase registerUserUseCase(
             UserRepositoryPort userRepositoryPort,
             PasswordHasherPort passwordHasherPort,
-            JwtTokenPort jwtTokenPort
+            JwtTokenPort jwtTokenPort,
+            AuditLogPort auditLogPort
     ) {
         return new RegisterUserUseCase(
                 userRepositoryPort,
                 passwordHasherPort,
-                jwtTokenPort
+                jwtTokenPort,
+                auditLogPort
         );
     }
 
@@ -35,12 +38,14 @@ public class IamApplicationConfig {
     public LoginUseCase loginUseCase(
             UserRepositoryPort userRepositoryPort,
             PasswordHasherPort passwordHasherPort,
-            JwtTokenPort jwtTokenPort
+            JwtTokenPort jwtTokenPort,
+            AuditLogPort auditLogPort
     ) {
         return new LoginUseCase(
                 userRepositoryPort,
                 passwordHasherPort,
-                jwtTokenPort
+                jwtTokenPort,
+                auditLogPort
         );
     }
 }
