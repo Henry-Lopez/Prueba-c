@@ -8,6 +8,16 @@ public record AiSuggestion(
         WorkOrderPriority prioritySuggestion,
         String explanation,
         boolean aiUsed,
-        boolean fallbackUsed
+        boolean fallbackUsed,
+        AiFallbackReason fallbackReason
 ) {
+    public AiSuggestion(
+            IncidentSeverity severitySuggestion,
+            WorkOrderPriority prioritySuggestion,
+            String explanation,
+            boolean aiUsed,
+            boolean fallbackUsed
+    ) {
+        this(severitySuggestion, prioritySuggestion, explanation, aiUsed, fallbackUsed, null);
+    }
 }
