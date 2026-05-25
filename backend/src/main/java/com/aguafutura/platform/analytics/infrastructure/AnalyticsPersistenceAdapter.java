@@ -47,7 +47,17 @@ public class AnalyticsPersistenceAdapter implements AnalyticsRepositoryPort {
         );
         long totalIncidents = incidentsBySeverity.values().stream().mapToLong(Long::longValue).sum();
 
-        // 4. Work Orders by Status
+        // 4. Incidents by Status
+        Map<String, Long> incidentsByStatus = new HashMap<>();
+        jdbcTemplate.query(
+                "SELECT status, COUNT(*) as cnt FROM incident_record WHERE tenant_id = ? GROUP BY status",
+                rs -> {
+                    incidentsByStatus.put(rs.getString("status"), rs.getLong("cnt"));
+                },
+                tenantId
+        );
+
+        // 5. Work Orders by Status
         Map<String, Long> workOrdersByStatus = new HashMap<>();
         jdbcTemplate.query(
                 "SELECT status, COUNT(*) as cnt FROM work_order WHERE tenant_id = ? GROUP BY status",
@@ -58,13 +68,22 @@ public class AnalyticsPersistenceAdapter implements AnalyticsRepositoryPort {
         );
         long totalWorkOrders = workOrdersByStatus.values().stream().mapToLong(Long::longValue).sum();
 
+        // 6. Total Evidence
+        Long totalEvidence = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM evidence WHERE tenant_id = ?",
+                Long.class,
+                tenantId
+        );
+
         return new DashboardMetrics(
                 totalAssets != null ? totalAssets : 0L,
                 totalConsumption,
                 totalIncidents,
                 incidentsBySeverity,
+                incidentsByStatus,
                 totalWorkOrders,
-                workOrdersByStatus
+                workOrdersByStatus,
+                totalEvidence != null ? totalEvidence : 0L
         );
     }
 }

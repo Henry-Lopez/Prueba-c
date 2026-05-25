@@ -32,6 +32,12 @@ public class EvidencePersistenceAdapter implements EvidenceRepositoryPort {
     }
 
     @Override
+    public Optional<Evidence> findByTenantIdAndId(UUID tenantId, UUID id) {
+        return repository.findByTenantIdAndId(tenantId, id)
+                .map(EvidenceJpaEntity::toDomain);
+    }
+
+    @Override
     public List<Evidence> findAllByTenantIdAndReference(UUID tenantId, ReferenceType type, UUID referenceId) {
         return repository.findByTenantIdAndReferenceTypeAndReferenceIdOrderByCreatedAtDesc(tenantId, type.name(), referenceId)
                 .stream()

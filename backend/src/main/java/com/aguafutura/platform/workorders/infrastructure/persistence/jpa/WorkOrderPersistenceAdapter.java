@@ -31,6 +31,12 @@ public class WorkOrderPersistenceAdapter implements WorkOrderRepositoryPort {
     }
 
     @Override
+    public Optional<WorkOrder> findByTenantIdAndId(UUID tenantId, UUID id) {
+        return repository.findByTenantIdAndId(tenantId, id)
+                .map(WorkOrderJpaEntity::toDomain);
+    }
+
+    @Override
     public List<WorkOrder> findAllByTenantId(UUID tenantId) {
         return repository.findByTenantIdOrderByCreatedAtDesc(tenantId).stream()
                 .map(WorkOrderJpaEntity::toDomain)

@@ -1,5 +1,6 @@
 package com.aguafutura.platform.evidence.api;
 
+import com.aguafutura.platform.evidence.application.GetEvidenceUseCase;
 import com.aguafutura.platform.evidence.application.ListEvidenceUseCase;
 import com.aguafutura.platform.evidence.application.UploadEvidenceUseCase;
 import com.aguafutura.platform.evidence.domain.Evidence;
@@ -14,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -28,13 +28,16 @@ public class EvidenceController {
 
     private final UploadEvidenceUseCase uploadEvidenceUseCase;
     private final ListEvidenceUseCase listEvidenceUseCase;
+    private final GetEvidenceUseCase getEvidenceUseCase;
 
     public EvidenceController(
             UploadEvidenceUseCase uploadEvidenceUseCase,
-            ListEvidenceUseCase listEvidenceUseCase
+            ListEvidenceUseCase listEvidenceUseCase,
+            GetEvidenceUseCase getEvidenceUseCase
     ) {
         this.uploadEvidenceUseCase = uploadEvidenceUseCase;
         this.listEvidenceUseCase = listEvidenceUseCase;
+        this.getEvidenceUseCase = getEvidenceUseCase;
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -79,20 +82,15 @@ public class EvidenceController {
         return ResponseEntity.ok(evidences);
     }
 
-    @GetMapping("/download/{fileName}")
+    @GetMapping("/download/{evidenceId}")
     public ResponseEntity<Resource> downloadFile(
-            @PathVariable String fileName,
+            @PathVariable UUID evidenceId,
             Authentication authentication
     ) {
         try {
             UUID tenantId = UUID.fromString(authentication.getDetails().toString());
-            Path uploadRoot = Paths.get("uploads").toAbsolutePath().normalize();
-            Path filePath = uploadRoot.resolve(tenantId.toString()).resolve(fileName).normalize();
-
-            if (!filePath.startsWith(uploadRoot.resolve(tenantId.toString()).normalize())) {
-                return ResponseEntity.badRequest().build();
-            }
-
+            Evidence evidence = getEvidenceUseCase.execute(tenantId, evidenceId);
+            Path filePath = Paths.get(evidence.getFilePath()).normalize();
             Resource resource = new UrlResource(filePath.toUri());
 
             if (resource.exists() || resource.isReadable()) {
@@ -114,8 +112,7 @@ public class EvidenceController {
     }
 
     private EvidenceResponse toResponse(Evidence evidence) {
-        String fileName = evidence.getFilePath().substring(evidence.getFilePath().lastIndexOf("/") + 1);
-        String url = "/api/v1/evidence/download/" + fileName;
+        String url = "/api/v1/evidence/download/" + evidence.getId();
 
         return new EvidenceResponse(
                 evidence.getId(),

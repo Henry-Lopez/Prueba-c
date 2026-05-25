@@ -6,6 +6,7 @@ import com.aguafutura.platform.incidents.domain.IncidentSeverity;
 import com.aguafutura.platform.incidents.domain.IncidentStatus;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class IncidentPersistenceAdapter implements IncidentRepositoryPort {
@@ -38,6 +39,12 @@ public class IncidentPersistenceAdapter implements IncidentRepositoryPort {
                 .stream()
                 .map(this::toDomain)
                 .toList();
+    }
+
+    @Override
+    public Optional<Incident> findByTenantIdAndId(UUID tenantId, UUID id) {
+        return repository.findByTenantIdAndId(tenantId, id)
+                .map(this::toDomain);
     }
 
     private Incident toDomain(IncidentJpaEntity entity) {

@@ -10,5 +10,6 @@ import java.util.UUID;
 public interface EvidenceRepositoryPort {
     Evidence save(Evidence evidence);
     Optional<Evidence> findById(UUID id);
+    Optional<Evidence> findByTenantIdAndId(UUID tenantId, UUID id);
     List<Evidence> findAllByTenantIdAndReference(UUID tenantId, ReferenceType type, UUID referenceId);
 }

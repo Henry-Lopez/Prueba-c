@@ -5,6 +5,7 @@ import com.aguafutura.platform.assets.domain.Asset;
 import com.aguafutura.platform.assets.domain.AssetType;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class AssetPersistenceAdapter implements AssetRepositoryPort {
@@ -38,6 +39,12 @@ public class AssetPersistenceAdapter implements AssetRepositoryPort {
                 .stream()
                 .map(this::toDomain)
                 .toList();
+    }
+
+    @Override
+    public Optional<Asset> findByTenantIdAndId(UUID tenantId, UUID id) {
+        return repository.findByTenantIdAndId(tenantId, id)
+                .map(this::toDomain);
     }
 
     private Asset toDomain(AssetJpaEntity entity) {

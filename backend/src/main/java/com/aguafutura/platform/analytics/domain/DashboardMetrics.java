@@ -8,6 +8,8 @@ public record DashboardMetrics(
         BigDecimal totalConsumptionVolume,
         long totalIncidents,
         Map<String, Long> incidentsBySeverity,
+        Map<String, Long> incidentsByStatus,
         long totalWorkOrders,
-        Map<String, Long> workOrdersByStatus
+        Map<String, Long> workOrdersByStatus,
+        long totalEvidence
 ) {}
