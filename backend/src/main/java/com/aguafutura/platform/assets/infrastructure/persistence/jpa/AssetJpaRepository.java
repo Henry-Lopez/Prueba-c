@@ -11,4 +11,8 @@ public interface AssetJpaRepository extends JpaRepository<AssetJpaEntity, UUID> 
     List<AssetJpaEntity> findByTenantId(UUID tenantId);
 
     Optional<AssetJpaEntity> findByTenantIdAndId(UUID tenantId, UUID id);
+
+    boolean existsByTenantIdAndCode(UUID tenantId, String code);
+
+    boolean existsByTenantIdAndCodeAndIdNot(UUID tenantId, String code, UUID id);
 }

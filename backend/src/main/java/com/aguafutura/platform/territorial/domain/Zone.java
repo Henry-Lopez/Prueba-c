@@ -23,10 +23,9 @@ public class Zone {
             Boolean enabled,
             LocalDateTime createdAt,
             LocalDateTime updatedAt
-    ) {
+        ) {
         if (id == null) throw new IllegalArgumentException("Zone id is required");
         if (tenantId == null) throw new IllegalArgumentException("Tenant id is required");
-        validateCode(code);
         if (name == null || name.isBlank()) throw new IllegalArgumentException("Zone name is required");
 
         this.id = id;
@@ -40,11 +39,13 @@ public class Zone {
     }
 
     public static Zone create(UUID tenantId, String code, String name, String description) {
+        validateCode(code);
         LocalDateTime now = LocalDateTime.now();
         return new Zone(UUID.randomUUID(), tenantId, code, name, description, true, now, now);
     }
 
     public Zone update(String code, String name, String description, Boolean enabled) {
+        validateCode(code);
         return new Zone(
                 id,
                 tenantId,

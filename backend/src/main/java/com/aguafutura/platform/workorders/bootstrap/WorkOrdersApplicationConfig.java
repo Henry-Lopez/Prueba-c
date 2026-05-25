@@ -3,8 +3,10 @@ package com.aguafutura.platform.workorders.bootstrap;
 import com.aguafutura.platform.assets.application.port.AssetRepositoryPort;
 import com.aguafutura.platform.core.application.port.AuditLogPort;
 import com.aguafutura.platform.incidents.application.port.IncidentRepositoryPort;
+import com.aguafutura.platform.workorders.application.CancelWorkOrderUseCase;
 import com.aguafutura.platform.workorders.application.CreateWorkOrderUseCase;
 import com.aguafutura.platform.workorders.application.ListWorkOrdersUseCase;
+import com.aguafutura.platform.workorders.application.UpdateWorkOrderUseCase;
 import com.aguafutura.platform.workorders.application.port.WorkOrderRepositoryPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,5 +27,21 @@ public class WorkOrdersApplicationConfig {
     @Bean
     public ListWorkOrdersUseCase listWorkOrdersUseCase(WorkOrderRepositoryPort repositoryPort) {
         return new ListWorkOrdersUseCase(repositoryPort);
+    }
+
+    @Bean
+    public UpdateWorkOrderUseCase updateWorkOrderUseCase(
+            WorkOrderRepositoryPort repositoryPort,
+            AuditLogPort auditLogPort
+    ) {
+        return new UpdateWorkOrderUseCase(repositoryPort, auditLogPort);
+    }
+
+    @Bean
+    public CancelWorkOrderUseCase cancelWorkOrderUseCase(
+            WorkOrderRepositoryPort repositoryPort,
+            AuditLogPort auditLogPort
+    ) {
+        return new CancelWorkOrderUseCase(repositoryPort, auditLogPort);
     }
 }

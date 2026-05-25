@@ -47,6 +47,16 @@ public class AssetPersistenceAdapter implements AssetRepositoryPort {
                 .map(this::toDomain);
     }
 
+    @Override
+    public boolean existsByTenantIdAndCode(UUID tenantId, String code) {
+        return repository.existsByTenantIdAndCode(tenantId, code);
+    }
+
+    @Override
+    public boolean existsByTenantIdAndCodeAndIdNot(UUID tenantId, String code, UUID id) {
+        return repository.existsByTenantIdAndCodeAndIdNot(tenantId, code, id);
+    }
+
     private Asset toDomain(AssetJpaEntity entity) {
         return new Asset(
                 entity.getId(),

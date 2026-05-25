@@ -15,15 +15,21 @@ import java.util.stream.Collectors;
 public class DetectAnomalyUseCase {
 
     private static final Logger log = LoggerFactory.getLogger(DetectAnomalyUseCase.class);
+    private static final String DISABLED_API_KEY_PLACEHOLDER = "__OPENAI_DISABLED__";
 
     private final ChatModel chatModel;
     private final ConsumptionRepositoryPort consumptionRepository;
-    private final boolean openAiApiKeyConfigured;
+    private final boolean openAiEnabled;
 
-    public DetectAnomalyUseCase(ChatModel chatModel, ConsumptionRepositoryPort consumptionRepository, String openAiApiKey) {
+    public DetectAnomalyUseCase(
+            ChatModel chatModel,
+            ConsumptionRepositoryPort consumptionRepository,
+            boolean openAiEnabled,
+            String openAiApiKey
+    ) {
         this.chatModel = chatModel;
         this.consumptionRepository = consumptionRepository;
-        this.openAiApiKeyConfigured = openAiApiKey != null && !openAiApiKey.isBlank();
+        this.openAiEnabled = openAiEnabled && isUsableApiKey(openAiApiKey) && chatModel != null;
     }
 
     public AnomalyReport execute(UUID tenantId, UUID assetId) {
@@ -55,7 +61,7 @@ public class DetectAnomalyUseCase {
 
         String userMessage = "Consumos recientes:\n" + dataString;
 
-        if (!openAiApiKeyConfigured) {
+        if (!openAiEnabled) {
             return fallback(recent, AiFallbackReason.API_KEY_MISSING);
         }
 
@@ -90,6 +96,12 @@ public class DetectAnomalyUseCase {
         log.warn("OpenAI request failed: {}", reason);
         log.info("Using deterministic fallback");
         return simulateAnomalyDetection(recent, reason);
+    }
+
+    private boolean isUsableApiKey(String openAiApiKey) {
+        return openAiApiKey != null
+                && !openAiApiKey.isBlank()
+                && !DISABLED_API_KEY_PLACEHOLDER.equals(openAiApiKey);
     }
 
     private AnomalyReport simulateAnomalyDetection(List<Consumption> recent, AiFallbackReason reason) {

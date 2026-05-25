@@ -65,6 +65,35 @@ public class Asset {
         );
     }
 
+    public Asset update(
+            UUID zoneId,
+            String code,
+            String name,
+            AssetType type,
+            String locationDescription,
+            Boolean enabled
+    ) {
+        return new Asset(
+                id,
+                tenantId,
+                zoneId,
+                code,
+                name,
+                type,
+                locationDescription,
+                enabled != null ? enabled : this.enabled,
+                createdAt
+        );
+    }
+
+    public Asset disable() {
+        return update(zoneId, code, name, type, locationDescription, false);
+    }
+
+    public String displayName() {
+        return code + " · " + name;
+    }
+
     public UUID getId() {
         return id;
     }

@@ -57,6 +57,18 @@ public class Consumption {
         );
     }
 
+    public Consumption update(LocalDateTime readingDate, BigDecimal value, UnitType unit) {
+        return new Consumption(
+                id,
+                tenantId,
+                assetId,
+                readingDate,
+                value,
+                unit,
+                createdAt
+        );
+    }
+
     public UUID getId() {
         return id;
     }

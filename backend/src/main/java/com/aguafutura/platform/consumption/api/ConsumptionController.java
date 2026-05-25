@@ -2,7 +2,9 @@ package com.aguafutura.platform.consumption.api;
 
 import com.aguafutura.platform.consumption.application.ListConsumptionsUseCase;
 import com.aguafutura.platform.consumption.application.RegisterConsumptionUseCase;
+import com.aguafutura.platform.consumption.application.UpdateConsumptionUseCase;
 import com.aguafutura.platform.consumption.domain.Consumption;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -17,13 +19,16 @@ public class ConsumptionController {
 
     private final RegisterConsumptionUseCase registerConsumptionUseCase;
     private final ListConsumptionsUseCase listConsumptionsUseCase;
+    private final UpdateConsumptionUseCase updateConsumptionUseCase;
 
     public ConsumptionController(
             RegisterConsumptionUseCase registerConsumptionUseCase,
-            ListConsumptionsUseCase listConsumptionsUseCase
+            ListConsumptionsUseCase listConsumptionsUseCase,
+            UpdateConsumptionUseCase updateConsumptionUseCase
     ) {
         this.registerConsumptionUseCase = registerConsumptionUseCase;
         this.listConsumptionsUseCase = listConsumptionsUseCase;
+        this.updateConsumptionUseCase = updateConsumptionUseCase;
     }
 
     @PostMapping
@@ -63,6 +68,29 @@ public class ConsumptionController {
         return ResponseEntity.ok(consumptions);
     }
 
+    @PatchMapping("/{consumptionId}")
+    public ResponseEntity<ConsumptionResponse> update(
+            @PathVariable UUID consumptionId,
+            @RequestBody UpdateConsumptionRequest request,
+            Authentication authentication,
+            HttpServletRequest servletRequest
+    ) {
+        UUID tenantId = UUID.fromString(authentication.getDetails().toString());
+
+        Consumption consumption = updateConsumptionUseCase.execute(
+                tenantId,
+                actorId(authentication),
+                actorRole(authentication),
+                correlationId(servletRequest),
+                consumptionId,
+                request.readingDate(),
+                request.value(),
+                request.unit()
+        );
+
+        return ResponseEntity.ok(toResponse(consumption));
+    }
+
     private ConsumptionResponse toResponse(Consumption consumption) {
         return new ConsumptionResponse(
                 consumption.getId(),
@@ -73,5 +101,22 @@ public class ConsumptionController {
                 consumption.getUnit(),
                 consumption.getCreatedAt()
         );
+    }
+
+    private UUID actorId(Authentication authentication) {
+        return UUID.fromString(authentication.getName());
+    }
+
+    private String actorRole(Authentication authentication) {
+        return authentication.getAuthorities()
+                .stream()
+                .findFirst()
+                .map(authority -> authority.getAuthority().replaceFirst("^ROLE_", ""))
+                .orElse(null);
+    }
+
+    private String correlationId(HttpServletRequest request) {
+        Object correlationId = request.getAttribute("correlationId");
+        return correlationId != null ? correlationId.toString() : null;
     }
 }

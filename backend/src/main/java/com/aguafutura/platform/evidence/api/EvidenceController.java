@@ -122,14 +122,29 @@ public class EvidenceController {
         });
     }
 
+    @GetMapping("/download/{evidenceId}")
+    public ResponseEntity<Resource> downloadByEvidenceId(
+            @PathVariable UUID evidenceId,
+            Authentication authentication
+    ) {
+        UUID tenantId = UUID.fromString(authentication.getDetails().toString());
+        Evidence evidence = listEvidenceUseCase.findByTenantIdAndId(tenantId, evidenceId)
+                .orElseThrow(() -> new com.aguafutura.platform.core.application.ResourceNotFoundException("Evidence not found"));
+
+        return fileResponse(Paths.get(evidence.getFilePath()).normalize());
+    }
+
     // Endpoint to download/view the file directly
     @GetMapping("/download/{tenantId}/{fileName}")
     public ResponseEntity<Resource> downloadFile(
             @PathVariable String tenantId,
             @PathVariable String fileName
     ) {
+        return fileResponse(Paths.get("uploads").resolve(tenantId).resolve(fileName).normalize());
+    }
+
+    private ResponseEntity<Resource> fileResponse(Path filePath) {
         try {
-            Path filePath = Paths.get("uploads").resolve(tenantId).resolve(fileName).normalize();
             Resource resource = new UrlResource(filePath.toUri());
 
             if (resource.exists() || resource.isReadable()) {

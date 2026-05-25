@@ -109,6 +109,28 @@ public class WorkOrder {
         this.updatedAt = LocalDateTime.now();
     }
 
+    public void updateDetails(
+            String description,
+            WorkOrderPriority priority,
+            WorkOrderStatus status,
+            String assignedTo,
+            LocalDateTime scheduledAt
+    ) {
+        if (description == null || description.isBlank()) throw new IllegalArgumentException("description cannot be blank");
+        if (priority == null) throw new IllegalArgumentException("priority cannot be null");
+        if (status == null) throw new IllegalArgumentException("status cannot be null");
+
+        this.description = description.trim();
+        this.priority = priority;
+        this.status = status;
+        this.assignedTo = assignedTo == null || assignedTo.isBlank() ? null : assignedTo.trim();
+        this.scheduledAt = scheduledAt;
+        if (status == WorkOrderStatus.COMPLETED && this.completedAt == null) {
+            this.completedAt = LocalDateTime.now();
+        }
+        this.updatedAt = LocalDateTime.now();
+    }
+
     // Getters
     public UUID getId() { return id; }
     public UUID getTenantId() { return tenantId; }

@@ -68,6 +68,28 @@ public class Incident {
         this.status = newStatus;
     }
 
+    public Incident update(
+            String title,
+            String description,
+            IncidentSeverity severity,
+            IncidentStatus status
+    ) {
+        return new Incident(
+                id,
+                tenantId,
+                assetId,
+                title,
+                description,
+                severity,
+                status,
+                createdAt
+        );
+    }
+
+    public Incident close() {
+        return update(title, description, severity, IncidentStatus.CLOSED);
+    }
+
     public UUID getId() {
         return id;
     }

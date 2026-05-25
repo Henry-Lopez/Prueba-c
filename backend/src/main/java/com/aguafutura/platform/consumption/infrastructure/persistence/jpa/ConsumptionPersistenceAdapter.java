@@ -5,6 +5,7 @@ import com.aguafutura.platform.consumption.domain.Consumption;
 import com.aguafutura.platform.consumption.domain.UnitType;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class ConsumptionPersistenceAdapter implements ConsumptionRepositoryPort {
@@ -36,6 +37,12 @@ public class ConsumptionPersistenceAdapter implements ConsumptionRepositoryPort 
                 .stream()
                 .map(this::toDomain)
                 .toList();
+    }
+
+    @Override
+    public Optional<Consumption> findByTenantIdAndId(UUID tenantId, UUID id) {
+        return repository.findByTenantIdAndId(tenantId, id)
+                .map(this::toDomain);
     }
 
     private Consumption toDomain(ConsumptionJpaEntity entity) {

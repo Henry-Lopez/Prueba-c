@@ -5,8 +5,10 @@ import com.aguafutura.platform.assets.application.ListAssetsUseCase;
 import com.aguafutura.platform.assets.domain.Asset;
 import com.aguafutura.platform.incidents.application.ListIncidentsUseCase;
 import com.aguafutura.platform.incidents.domain.Incident;
+import com.aguafutura.platform.workorders.application.CancelWorkOrderUseCase;
 import com.aguafutura.platform.workorders.application.CreateWorkOrderUseCase;
 import com.aguafutura.platform.workorders.application.ListWorkOrdersUseCase;
+import com.aguafutura.platform.workorders.application.UpdateWorkOrderUseCase;
 import com.aguafutura.platform.workorders.domain.WorkOrder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -26,17 +28,23 @@ public class WorkOrderController {
     private final ListWorkOrdersUseCase listWorkOrdersUseCase;
     private final ListAssetsUseCase listAssetsUseCase;
     private final ListIncidentsUseCase listIncidentsUseCase;
+    private final UpdateWorkOrderUseCase updateWorkOrderUseCase;
+    private final CancelWorkOrderUseCase cancelWorkOrderUseCase;
 
     public WorkOrderController(
             CreateWorkOrderUseCase createWorkOrderUseCase,
             ListWorkOrdersUseCase listWorkOrdersUseCase,
             ListAssetsUseCase listAssetsUseCase,
-            ListIncidentsUseCase listIncidentsUseCase
+            ListIncidentsUseCase listIncidentsUseCase,
+            UpdateWorkOrderUseCase updateWorkOrderUseCase,
+            CancelWorkOrderUseCase cancelWorkOrderUseCase
     ) {
         this.createWorkOrderUseCase = createWorkOrderUseCase;
         this.listWorkOrdersUseCase = listWorkOrdersUseCase;
         this.listAssetsUseCase = listAssetsUseCase;
         this.listIncidentsUseCase = listIncidentsUseCase;
+        this.updateWorkOrderUseCase = updateWorkOrderUseCase;
+        this.cancelWorkOrderUseCase = cancelWorkOrderUseCase;
     }
 
     @PostMapping
@@ -77,6 +85,50 @@ public class WorkOrderController {
                 .toList();
 
         return ResponseEntity.ok(workOrders);
+    }
+
+    @PatchMapping("/{workOrderId}")
+    public ResponseEntity<WorkOrderResponse> update(
+            @PathVariable UUID workOrderId,
+            @RequestBody UpdateWorkOrderRequest request,
+            Authentication authentication,
+            HttpServletRequest servletRequest
+    ) {
+        UUID tenantId = UUID.fromString(authentication.getDetails().toString());
+
+        WorkOrder workOrder = updateWorkOrderUseCase.execute(
+                tenantId,
+                actorId(authentication),
+                actorRole(authentication),
+                correlationId(servletRequest),
+                workOrderId,
+                request.description(),
+                request.priority(),
+                request.status(),
+                request.assignedTo(),
+                request.scheduledAt()
+        );
+
+        return ResponseEntity.ok(toResponse(workOrder, assetsById(tenantId), incidentsById(tenantId)));
+    }
+
+    @DeleteMapping("/{workOrderId}")
+    public ResponseEntity<Void> cancel(
+            @PathVariable UUID workOrderId,
+            Authentication authentication,
+            HttpServletRequest servletRequest
+    ) {
+        UUID tenantId = UUID.fromString(authentication.getDetails().toString());
+
+        cancelWorkOrderUseCase.execute(
+                tenantId,
+                actorId(authentication),
+                actorRole(authentication),
+                correlationId(servletRequest),
+                workOrderId
+        );
+
+        return ResponseEntity.noContent().build();
     }
 
     private WorkOrderResponse toResponse(

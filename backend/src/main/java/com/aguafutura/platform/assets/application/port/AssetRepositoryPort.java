@@ -13,4 +13,8 @@ public interface AssetRepositoryPort {
     List<Asset> findByTenantId(UUID tenantId);
 
     Optional<Asset> findByTenantIdAndId(UUID tenantId, UUID id);
+
+    boolean existsByTenantIdAndCode(UUID tenantId, String code);
+
+    boolean existsByTenantIdAndCodeAndIdNot(UUID tenantId, String code, UUID id);
 }
