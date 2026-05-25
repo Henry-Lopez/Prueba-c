@@ -20,9 +20,13 @@ public class ZoneJpaEntity {
 
     private String name;
 
+    private String description;
+
     private Boolean enabled;
 
     private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
 
     public UUID getId() {
         return id;
@@ -56,6 +60,14 @@ public class ZoneJpaEntity {
         this.name = name;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     public Boolean getEnabled() {
         return enabled;
     }
@@ -70,5 +82,13 @@ public class ZoneJpaEntity {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

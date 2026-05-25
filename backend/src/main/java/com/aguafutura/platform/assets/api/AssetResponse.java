@@ -14,6 +14,9 @@ public record AssetResponse(
         AssetType type,
         String locationDescription,
         Boolean enabled,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        String zoneName,
+        String zoneCode,
+        String displayName
 ) {
 }

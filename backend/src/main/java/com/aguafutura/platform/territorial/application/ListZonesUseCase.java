@@ -15,6 +15,6 @@ public class ListZonesUseCase {
     }
 
     public List<Zone> execute(UUID tenantId) {
-        return zoneRepositoryPort.findByTenantId(tenantId);
+        return zoneRepositoryPort.findEnabledByTenantId(tenantId);
     }
 }

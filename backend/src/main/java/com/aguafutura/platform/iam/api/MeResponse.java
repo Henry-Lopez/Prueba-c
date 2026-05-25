@@ -5,6 +5,8 @@ import java.util.List;
 public record MeResponse(
         String userId,
         String tenantId,
-        List<String> roles
+        List<String> roles,
+        String tenantShortId,
+        String tenantName
 ) {
 }

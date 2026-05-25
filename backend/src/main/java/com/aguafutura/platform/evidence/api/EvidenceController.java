@@ -1,10 +1,16 @@
 package com.aguafutura.platform.evidence.api;
 
 import jakarta.servlet.http.HttpServletRequest;
+import com.aguafutura.platform.assets.application.ListAssetsUseCase;
+import com.aguafutura.platform.assets.domain.Asset;
 import com.aguafutura.platform.evidence.application.ListEvidenceUseCase;
 import com.aguafutura.platform.evidence.application.UploadEvidenceUseCase;
 import com.aguafutura.platform.evidence.domain.Evidence;
 import com.aguafutura.platform.evidence.domain.ReferenceType;
+import com.aguafutura.platform.incidents.application.ListIncidentsUseCase;
+import com.aguafutura.platform.incidents.domain.Incident;
+import com.aguafutura.platform.workorders.application.ListWorkOrdersUseCase;
+import com.aguafutura.platform.workorders.domain.WorkOrder;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
@@ -29,13 +35,22 @@ public class EvidenceController {
 
     private final UploadEvidenceUseCase uploadEvidenceUseCase;
     private final ListEvidenceUseCase listEvidenceUseCase;
+    private final ListAssetsUseCase listAssetsUseCase;
+    private final ListIncidentsUseCase listIncidentsUseCase;
+    private final ListWorkOrdersUseCase listWorkOrdersUseCase;
 
     public EvidenceController(
             UploadEvidenceUseCase uploadEvidenceUseCase,
-            ListEvidenceUseCase listEvidenceUseCase
+            ListEvidenceUseCase listEvidenceUseCase,
+            ListAssetsUseCase listAssetsUseCase,
+            ListIncidentsUseCase listIncidentsUseCase,
+            ListWorkOrdersUseCase listWorkOrdersUseCase
     ) {
         this.uploadEvidenceUseCase = uploadEvidenceUseCase;
         this.listEvidenceUseCase = listEvidenceUseCase;
+        this.listAssetsUseCase = listAssetsUseCase;
+        this.listIncidentsUseCase = listIncidentsUseCase;
+        this.listWorkOrdersUseCase = listWorkOrdersUseCase;
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -84,6 +99,29 @@ public class EvidenceController {
         return ResponseEntity.ok(evidences);
     }
 
+    @GetMapping("/reference-options")
+    public ResponseEntity<List<ReferenceOptionResponse>> referenceOptions(
+            @RequestParam("type") ReferenceType type,
+            Authentication authentication
+    ) {
+        UUID tenantId = UUID.fromString(authentication.getDetails().toString());
+
+        return ResponseEntity.ok(switch (type) {
+            case ASSET -> listAssetsUseCase.execute(tenantId)
+                    .stream()
+                    .map(this::assetReferenceOption)
+                    .toList();
+            case INCIDENT -> listIncidentsUseCase.execute(tenantId)
+                    .stream()
+                    .map(this::incidentReferenceOption)
+                    .toList();
+            case WORK_ORDER -> listWorkOrdersUseCase.execute(tenantId)
+                    .stream()
+                    .map(this::workOrderReferenceOption)
+                    .toList();
+        });
+    }
+
     // Endpoint to download/view the file directly
     @GetMapping("/download/{tenantId}/{fileName}")
     public ResponseEntity<Resource> downloadFile(
@@ -125,6 +163,34 @@ public class EvidenceController {
                 evidence.getFileName(),
                 url,
                 evidence.getCreatedAt()
+        );
+    }
+
+    private ReferenceOptionResponse assetReferenceOption(Asset asset) {
+        return new ReferenceOptionResponse(
+                ReferenceType.ASSET,
+                asset.getId(),
+                asset.getCode() + " · " + asset.getName(),
+                asset.getType().name()
+        );
+    }
+
+    private ReferenceOptionResponse incidentReferenceOption(Incident incident) {
+        return new ReferenceOptionResponse(
+                ReferenceType.INCIDENT,
+                incident.getId(),
+                incident.getTitle(),
+                incident.getStatus().name()
+        );
+    }
+
+    private ReferenceOptionResponse workOrderReferenceOption(WorkOrder workOrder) {
+        String shortId = workOrder.getId().toString().substring(0, 8).toUpperCase();
+        return new ReferenceOptionResponse(
+                ReferenceType.WORK_ORDER,
+                workOrder.getId(),
+                "OT-" + shortId + " · " + workOrder.getDescription(),
+                workOrder.getStatus().name()
         );
     }
 

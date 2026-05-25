@@ -8,7 +8,10 @@ public record ZoneResponse(
         UUID tenantId,
         String code,
         String name,
+        String description,
         Boolean enabled,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt,
+        String displayName
 ) {
 }

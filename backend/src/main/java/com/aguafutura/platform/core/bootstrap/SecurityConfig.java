@@ -65,6 +65,10 @@ public class SecurityConfig {
                                 "/api/v1/incidents",
                                 "/api/v1/work-orders"
                         ).hasAnyRole("ADMIN", "COORDINATOR")
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/zones/**")
+                        .hasAnyRole("ADMIN", "COORDINATOR")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/zones/**")
+                        .hasAnyRole("ADMIN", "COORDINATOR")
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/zones",
                                 "/api/v1/zones/**",
@@ -130,6 +134,7 @@ public class SecurityConfig {
         configuration.setAllowedMethods(List.of(
                 "GET",
                 "POST",
+                "PATCH",
                 "PUT",
                 "DELETE",
                 "OPTIONS"

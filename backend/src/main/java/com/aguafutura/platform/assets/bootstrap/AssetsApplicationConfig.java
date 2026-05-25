@@ -5,6 +5,7 @@ import com.aguafutura.platform.assets.application.ListAssetsUseCase;
 import com.aguafutura.platform.assets.application.port.AssetRepositoryPort;
 import com.aguafutura.platform.assets.infrastructure.persistence.jpa.AssetJpaRepository;
 import com.aguafutura.platform.assets.infrastructure.persistence.jpa.AssetPersistenceAdapter;
+import com.aguafutura.platform.territorial.application.port.ZoneRepositoryPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -17,8 +18,8 @@ public class AssetsApplicationConfig {
     }
 
     @Bean
-    public CreateAssetUseCase createAssetUseCase(AssetRepositoryPort assetRepositoryPort) {
-        return new CreateAssetUseCase(assetRepositoryPort);
+    public CreateAssetUseCase createAssetUseCase(AssetRepositoryPort assetRepositoryPort, ZoneRepositoryPort zoneRepositoryPort) {
+        return new CreateAssetUseCase(assetRepositoryPort, zoneRepositoryPort);
     }
 
     @Bean

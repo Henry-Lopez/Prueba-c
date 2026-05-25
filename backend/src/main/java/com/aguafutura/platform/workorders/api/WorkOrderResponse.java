@@ -17,5 +17,10 @@ public record WorkOrderResponse(
         String assignedTo,
         LocalDateTime scheduledAt,
         LocalDateTime completedAt,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt,
+        String assetName,
+        String assetCode,
+        String incidentTitle,
+        String displayName
 ) {}

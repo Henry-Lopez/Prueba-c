@@ -13,6 +13,9 @@ public record IncidentResponse(
         String description,
         IncidentSeverity severity,
         IncidentStatus status,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        String assetName,
+        String assetCode,
+        String displayName
 ) {
 }

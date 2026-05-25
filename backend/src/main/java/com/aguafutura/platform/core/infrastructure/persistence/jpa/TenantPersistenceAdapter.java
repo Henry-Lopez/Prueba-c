@@ -5,6 +5,8 @@ import com.aguafutura.platform.core.domain.Tenant;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public class TenantPersistenceAdapter implements TenantRepositoryPort {
@@ -21,5 +23,11 @@ public class TenantPersistenceAdapter implements TenantRepositoryPort {
                 .stream()
                 .map(TenantJpaEntity::toDomain)
                 .toList();
+    }
+
+    @Override
+    public Optional<Tenant> findById(UUID id) {
+        return tenantJpaRepository.findById(id)
+                .map(TenantJpaEntity::toDomain);
     }
 }

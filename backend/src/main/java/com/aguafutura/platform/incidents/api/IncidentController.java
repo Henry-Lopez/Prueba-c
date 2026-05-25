@@ -1,6 +1,8 @@
 package com.aguafutura.platform.incidents.api;
 
 import jakarta.servlet.http.HttpServletRequest;
+import com.aguafutura.platform.assets.application.ListAssetsUseCase;
+import com.aguafutura.platform.assets.domain.Asset;
 import com.aguafutura.platform.incidents.application.ListIncidentsUseCase;
 import com.aguafutura.platform.incidents.application.ReportIncidentUseCase;
 import com.aguafutura.platform.incidents.domain.Incident;
@@ -10,7 +12,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/incidents")
@@ -18,13 +22,16 @@ public class IncidentController {
 
     private final ReportIncidentUseCase reportIncidentUseCase;
     private final ListIncidentsUseCase listIncidentsUseCase;
+    private final ListAssetsUseCase listAssetsUseCase;
 
     public IncidentController(
             ReportIncidentUseCase reportIncidentUseCase,
-            ListIncidentsUseCase listIncidentsUseCase
+            ListIncidentsUseCase listIncidentsUseCase,
+            ListAssetsUseCase listAssetsUseCase
     ) {
         this.reportIncidentUseCase = reportIncidentUseCase;
         this.listIncidentsUseCase = listIncidentsUseCase;
+        this.listAssetsUseCase = listAssetsUseCase;
     }
 
     @PostMapping
@@ -46,7 +53,7 @@ public class IncidentController {
                 request.severity()
         );
 
-        IncidentResponse response = toResponse(incident);
+        IncidentResponse response = toResponse(incident, assetsById(tenantId));
 
         return ResponseEntity
                 .created(URI.create("/api/v1/incidents/" + response.id()))
@@ -57,15 +64,18 @@ public class IncidentController {
     public ResponseEntity<List<IncidentResponse>> list(Authentication authentication) {
         UUID tenantId = UUID.fromString(authentication.getDetails().toString());
 
+        Map<UUID, Asset> assetsById = assetsById(tenantId);
         List<IncidentResponse> incidents = listIncidentsUseCase.execute(tenantId)
                 .stream()
-                .map(this::toResponse)
+                .map(incident -> toResponse(incident, assetsById))
                 .toList();
 
         return ResponseEntity.ok(incidents);
     }
 
-    private IncidentResponse toResponse(Incident incident) {
+    private IncidentResponse toResponse(Incident incident, Map<UUID, Asset> assetsById) {
+        Asset asset = assetsById.get(incident.getAssetId());
+        String assetLabel = asset != null ? asset.getCode() : null;
         return new IncidentResponse(
                 incident.getId(),
                 incident.getTenantId(),
@@ -74,8 +84,17 @@ public class IncidentController {
                 incident.getDescription(),
                 incident.getSeverity(),
                 incident.getStatus(),
-                incident.getCreatedAt()
+                incident.getCreatedAt(),
+                asset != null ? asset.getName() : null,
+                asset != null ? asset.getCode() : null,
+                assetLabel != null ? incident.getTitle() + " · " + assetLabel : incident.getTitle()
         );
+    }
+
+    private Map<UUID, Asset> assetsById(UUID tenantId) {
+        return listAssetsUseCase.execute(tenantId)
+                .stream()
+                .collect(Collectors.toMap(Asset::getId, asset -> asset));
     }
 
     private UUID actorId(Authentication authentication) {

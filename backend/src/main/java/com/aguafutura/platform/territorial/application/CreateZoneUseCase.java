@@ -3,7 +3,6 @@ package com.aguafutura.platform.territorial.application;
 import com.aguafutura.platform.territorial.application.port.ZoneRepositoryPort;
 import com.aguafutura.platform.territorial.domain.Zone;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 public class CreateZoneUseCase {
@@ -15,15 +14,15 @@ public class CreateZoneUseCase {
     }
 
     public Zone execute(UUID tenantId, String code, String name) {
-        Zone zone = new Zone(
-                UUID.randomUUID(),
-                tenantId,
-                code,
-                name,
-                true,
-                LocalDateTime.now()
-        );
+        return execute(tenantId, code, name, null);
+    }
 
-        return zoneRepositoryPort.save(zone);
+    public Zone execute(UUID tenantId, String code, String name, String description) {
+        String normalizedCode = Zone.normalizeCode(code);
+        if (zoneRepositoryPort.existsByTenantIdAndCode(tenantId, normalizedCode)) {
+            throw new com.aguafutura.platform.core.application.ConflictException("Zone code already exists for this tenant");
+        }
+
+        return zoneRepositoryPort.save(Zone.create(tenantId, normalizedCode, name, description));
     }
 }
