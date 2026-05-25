@@ -71,9 +71,12 @@ public class EvidenceController {
     @GetMapping("/{referenceType}/{referenceId}")
     public ResponseEntity<List<EvidenceResponse>> list(
             @PathVariable ReferenceType referenceType,
-            @PathVariable UUID referenceId
+            @PathVariable UUID referenceId,
+            Authentication authentication
     ) {
-        List<EvidenceResponse> evidences = listEvidenceUseCase.execute(referenceType, referenceId)
+        UUID tenantId = UUID.fromString(authentication.getDetails().toString());
+
+        List<EvidenceResponse> evidences = listEvidenceUseCase.execute(tenantId, referenceType, referenceId)
                 .stream()
                 .map(this::toResponse)
                 .toList();
