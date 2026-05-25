@@ -7,6 +7,7 @@ import com.aguafutura.platform.consumption.application.port.ConsumptionRepositor
 import com.aguafutura.platform.core.application.port.AuditLogPort;
 import com.aguafutura.platform.incidents.application.port.IncidentRepositoryPort;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -14,8 +15,12 @@ import org.springframework.context.annotation.Configuration;
 public class AiApplicationConfig {
 
     @Bean
-    public DetectAnomalyUseCase detectAnomalyUseCase(ChatModel chatModel, ConsumptionRepositoryPort consumptionRepositoryPort) {
-        return new DetectAnomalyUseCase(chatModel, consumptionRepositoryPort);
+    public DetectAnomalyUseCase detectAnomalyUseCase(
+            ChatModel chatModel,
+            ConsumptionRepositoryPort consumptionRepositoryPort,
+            @Value("${spring.ai.openai.api-key:}") String openAiApiKey
+    ) {
+        return new DetectAnomalyUseCase(chatModel, consumptionRepositoryPort, openAiApiKey);
     }
 
     @Bean
