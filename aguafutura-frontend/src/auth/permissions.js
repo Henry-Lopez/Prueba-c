@@ -1,0 +1,44 @@
+export const ROLES = {
+  SUPER_ADMIN: 'SUPER_ADMIN',
+  ADMIN: 'ADMIN',
+  COORDINATOR: 'COORDINATOR',
+  TECHNICIAN: 'TECHNICIAN',
+  AUDITOR: 'AUDITOR',
+  CITIZEN: 'CITIZEN',
+};
+
+export const PERMISSIONS = {
+  tenantsManage: [ROLES.SUPER_ADMIN],
+  usersManage: [ROLES.SUPER_ADMIN, ROLES.ADMIN],
+  dashboardRead: [ROLES.ADMIN, ROLES.COORDINATOR, ROLES.AUDITOR],
+  zonesRead: [ROLES.ADMIN, ROLES.COORDINATOR, ROLES.AUDITOR],
+  zonesCreate: [ROLES.ADMIN],
+  zonesUpdate: [ROLES.ADMIN],
+  zonesDelete: [ROLES.ADMIN],
+  assetsRead: [ROLES.ADMIN, ROLES.COORDINATOR, ROLES.AUDITOR],
+  assetsCreate: [ROLES.ADMIN, ROLES.COORDINATOR],
+  assetsUpdate: [ROLES.ADMIN, ROLES.COORDINATOR],
+  assetsDelete: [ROLES.ADMIN, ROLES.COORDINATOR],
+  consumptionsRead: [ROLES.ADMIN, ROLES.COORDINATOR, ROLES.AUDITOR],
+  consumptionsCreate: [ROLES.ADMIN, ROLES.COORDINATOR],
+  consumptionsUpdate: [ROLES.ADMIN, ROLES.COORDINATOR],
+  incidentsRead: [ROLES.ADMIN, ROLES.COORDINATOR, ROLES.AUDITOR, ROLES.CITIZEN],
+  incidentsCreate: [ROLES.ADMIN, ROLES.COORDINATOR, ROLES.CITIZEN],
+  incidentsUpdate: [ROLES.ADMIN, ROLES.COORDINATOR],
+  incidentsDelete: [ROLES.ADMIN, ROLES.COORDINATOR],
+  workOrdersRead: [ROLES.ADMIN, ROLES.COORDINATOR, ROLES.TECHNICIAN, ROLES.AUDITOR],
+  workOrdersCreate: [ROLES.ADMIN, ROLES.COORDINATOR],
+  workOrdersUpdate: [ROLES.ADMIN, ROLES.COORDINATOR],
+  workOrdersDelete: [ROLES.ADMIN, ROLES.COORDINATOR],
+  evidenceRead: [ROLES.ADMIN, ROLES.COORDINATOR, ROLES.TECHNICIAN, ROLES.AUDITOR],
+  evidenceCreate: [ROLES.ADMIN, ROLES.COORDINATOR, ROLES.TECHNICIAN],
+  aiUse: [ROLES.ADMIN, ROLES.COORDINATOR],
+};
+
+export function hasAnyRole(userRoles, allowedRoles) {
+  if (!allowedRoles?.length) {
+    return true;
+  }
+
+  return userRoles.some((role) => allowedRoles.includes(role));
+}
