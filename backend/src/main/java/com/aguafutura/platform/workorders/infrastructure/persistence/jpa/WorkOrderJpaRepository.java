@@ -11,5 +11,6 @@ import java.util.UUID;
 public interface WorkOrderJpaRepository extends JpaRepository<WorkOrderJpaEntity, UUID> {
     Optional<WorkOrderJpaEntity> findByTenantIdAndId(UUID tenantId, UUID id);
     List<WorkOrderJpaEntity> findByTenantIdOrderByCreatedAtDesc(UUID tenantId);
+    List<WorkOrderJpaEntity> findByTenantIdAndAssignedToIgnoreCaseOrderByCreatedAtDesc(UUID tenantId, String assignedTo);
     List<WorkOrderJpaEntity> findByAssetIdOrderByCreatedAtDesc(UUID assetId);
 }

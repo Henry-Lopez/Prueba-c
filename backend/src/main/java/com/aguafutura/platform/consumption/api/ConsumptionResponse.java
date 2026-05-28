@@ -13,6 +13,9 @@ public record ConsumptionResponse(
         LocalDateTime readingDate,
         BigDecimal value,
         UnitType unit,
+        BigDecimal originalValue,
+        UnitType originalUnit,
+        BigDecimal normalizedVolumeM3,
         LocalDateTime createdAt
 ) {
 }

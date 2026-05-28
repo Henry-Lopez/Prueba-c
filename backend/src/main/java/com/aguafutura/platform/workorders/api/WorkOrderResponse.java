@@ -17,6 +17,8 @@ public record WorkOrderResponse(
         String assignedTo,
         LocalDateTime scheduledAt,
         LocalDateTime completedAt,
+        LocalDateTime cancelledAt,
+        String cancelReason,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
         String assetName,

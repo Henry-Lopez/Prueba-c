@@ -1,0 +1,4 @@
+UPDATE consumption_record
+SET unit = 'CUBIC_METERS'
+WHERE tenant_id = '11111111-1111-1111-1111-111111111111'
+  AND unit <> 'CUBIC_METERS';

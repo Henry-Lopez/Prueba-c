@@ -25,6 +25,9 @@ public class ConsumptionPersistenceAdapter implements ConsumptionRepositoryPort 
                 consumption.getReadingDate(),
                 consumption.getValue(),
                 consumption.getUnit().name(),
+                consumption.getOriginalValue(),
+                consumption.getOriginalUnit().name(),
+                consumption.getValue(),
                 consumption.getCreatedAt()
         );
 
@@ -51,8 +54,10 @@ public class ConsumptionPersistenceAdapter implements ConsumptionRepositoryPort 
                 entity.getTenantId(),
                 entity.getAssetId(),
                 entity.getReadingDate(),
-                entity.getValue(),
-                UnitType.valueOf(entity.getUnit()),
+                entity.getNormalizedVolumeM3() != null ? entity.getNormalizedVolumeM3() : entity.getValue(),
+                UnitType.CUBIC_METERS,
+                entity.getOriginalValue() != null ? entity.getOriginalValue() : entity.getValue(),
+                UnitType.valueOf(entity.getOriginalUnit() != null ? entity.getOriginalUnit() : entity.getUnit()),
                 entity.getCreatedAt()
         );
     }

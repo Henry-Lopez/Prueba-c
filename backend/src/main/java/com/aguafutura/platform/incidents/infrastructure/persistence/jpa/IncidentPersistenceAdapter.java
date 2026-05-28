@@ -27,6 +27,7 @@ public class IncidentPersistenceAdapter implements IncidentRepositoryPort {
                 incident.getDescription(),
                 incident.getSeverity().name(),
                 incident.getStatus().name(),
+                incident.getReporterUserId(),
                 incident.getCreatedAt()
         );
 
@@ -56,6 +57,7 @@ public class IncidentPersistenceAdapter implements IncidentRepositoryPort {
                 entity.getDescription(),
                 IncidentSeverity.valueOf(entity.getSeverity()),
                 IncidentStatus.valueOf(entity.getStatus()),
+                entity.getReporterUserId(),
                 entity.getCreatedAt()
         );
     }

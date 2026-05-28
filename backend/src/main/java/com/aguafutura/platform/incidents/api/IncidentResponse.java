@@ -13,6 +13,7 @@ public record IncidentResponse(
         String description,
         IncidentSeverity severity,
         IncidentStatus status,
+        UUID reporterUserId,
         LocalDateTime createdAt,
         String assetName,
         String assetCode,

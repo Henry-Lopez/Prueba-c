@@ -7,6 +7,7 @@ import com.aguafutura.platform.incidents.application.ListIncidentsUseCase;
 import com.aguafutura.platform.incidents.domain.Incident;
 import com.aguafutura.platform.workorders.application.CancelWorkOrderUseCase;
 import com.aguafutura.platform.workorders.application.CreateWorkOrderUseCase;
+import com.aguafutura.platform.workorders.application.GetWorkOrderUseCase;
 import com.aguafutura.platform.workorders.application.ListWorkOrdersUseCase;
 import com.aguafutura.platform.workorders.application.UpdateWorkOrderUseCase;
 import com.aguafutura.platform.workorders.domain.WorkOrder;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 public class WorkOrderController {
 
     private final CreateWorkOrderUseCase createWorkOrderUseCase;
+    private final GetWorkOrderUseCase getWorkOrderUseCase;
     private final ListWorkOrdersUseCase listWorkOrdersUseCase;
     private final ListAssetsUseCase listAssetsUseCase;
     private final ListIncidentsUseCase listIncidentsUseCase;
@@ -33,6 +35,7 @@ public class WorkOrderController {
 
     public WorkOrderController(
             CreateWorkOrderUseCase createWorkOrderUseCase,
+            GetWorkOrderUseCase getWorkOrderUseCase,
             ListWorkOrdersUseCase listWorkOrdersUseCase,
             ListAssetsUseCase listAssetsUseCase,
             ListIncidentsUseCase listIncidentsUseCase,
@@ -40,6 +43,7 @@ public class WorkOrderController {
             CancelWorkOrderUseCase cancelWorkOrderUseCase
     ) {
         this.createWorkOrderUseCase = createWorkOrderUseCase;
+        this.getWorkOrderUseCase = getWorkOrderUseCase;
         this.listWorkOrdersUseCase = listWorkOrdersUseCase;
         this.listAssetsUseCase = listAssetsUseCase;
         this.listIncidentsUseCase = listIncidentsUseCase;
@@ -63,7 +67,8 @@ public class WorkOrderController {
                 request.assetId(),
                 request.incidentId(),
                 request.description(),
-                request.priority()
+                request.priority(),
+                request.assignedTo()
         );
 
         WorkOrderResponse response = toResponse(workOrder, assetsById(tenantId), incidentsById(tenantId));
@@ -79,12 +84,25 @@ public class WorkOrderController {
 
         Map<UUID, Asset> assetsById = assetsById(tenantId);
         Map<UUID, Incident> incidentsById = incidentsById(tenantId);
-        List<WorkOrderResponse> workOrders = listWorkOrdersUseCase.execute(tenantId)
+        List<WorkOrderResponse> workOrders = listVisibleWorkOrders(tenantId, authentication)
                 .stream()
                 .map(workOrder -> toResponse(workOrder, assetsById, incidentsById))
                 .toList();
 
         return ResponseEntity.ok(workOrders);
+    }
+
+    @GetMapping("/{workOrderId}")
+    public ResponseEntity<WorkOrderResponse> getById(
+            @PathVariable UUID workOrderId,
+            Authentication authentication
+    ) {
+        UUID tenantId = UUID.fromString(authentication.getDetails().toString());
+        WorkOrder workOrder = isTechnician(authentication)
+                ? getWorkOrderUseCase.executeForTechnician(tenantId, workOrderId, actorEmail(authentication))
+                : getWorkOrderUseCase.execute(tenantId, workOrderId);
+
+        return ResponseEntity.ok(toResponse(workOrder, assetsById(tenantId), incidentsById(tenantId)));
     }
 
     @PatchMapping("/{workOrderId}")
@@ -115,6 +133,7 @@ public class WorkOrderController {
     @DeleteMapping("/{workOrderId}")
     public ResponseEntity<Void> cancel(
             @PathVariable UUID workOrderId,
+            @RequestBody(required = false) Map<String, String> request,
             Authentication authentication,
             HttpServletRequest servletRequest
     ) {
@@ -125,7 +144,8 @@ public class WorkOrderController {
                 actorId(authentication),
                 actorRole(authentication),
                 correlationId(servletRequest),
-                workOrderId
+                workOrderId,
+                request != null ? request.get("cancelReason") : null
         );
 
         return ResponseEntity.noContent().build();
@@ -150,6 +170,8 @@ public class WorkOrderController {
                 workOrder.getAssignedTo(),
                 workOrder.getScheduledAt(),
                 workOrder.getCompletedAt(),
+                workOrder.getCancelledAt(),
+                workOrder.getCancelReason(),
                 workOrder.getCreatedAt(),
                 workOrder.getUpdatedAt(),
                 asset != null ? asset.getName() : null,
@@ -175,12 +197,31 @@ public class WorkOrderController {
         return UUID.fromString(authentication.getName());
     }
 
+    private String actorEmail(Authentication authentication) {
+        Object credentials = authentication.getCredentials();
+        return credentials != null ? credentials.toString() : null;
+    }
+
     private String actorRole(Authentication authentication) {
         return authentication.getAuthorities()
                 .stream()
                 .findFirst()
                 .map(authority -> authority.getAuthority().replaceFirst("^ROLE_", ""))
                 .orElse(null);
+    }
+
+    private boolean isTechnician(Authentication authentication) {
+        return authentication.getAuthorities()
+                .stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_TECHNICIAN"));
+    }
+
+    private List<WorkOrder> listVisibleWorkOrders(UUID tenantId, Authentication authentication) {
+        if (isTechnician(authentication)) {
+            return listWorkOrdersUseCase.executeForTechnician(tenantId, actorEmail(authentication));
+        }
+
+        return listWorkOrdersUseCase.execute(tenantId);
     }
 
     private String correlationId(HttpServletRequest request) {

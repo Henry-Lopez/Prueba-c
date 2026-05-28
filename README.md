@@ -262,3 +262,14 @@ Revisar `SecurityConfig`, donde se permiten temporalmente endpoints públicos co
 ```
 
 La autenticación real con JWT será implementada en el módulo IAM.
+## AguaFutura AI - MVP local
+
+Este repositorio contiene el MVP actual de AguaFutura AI: backend Spring Boot 3 / Java 21, frontend React/Vite y servicios locales con Docker.
+
+Documentacion principal:
+
+- Guia local: `docs/local-run.md`
+- Guia de demo: `docs/demo-guide.md`
+- Plan de pruebas manuales: `docs/manual-test-plan.md`
+- Checklist de defensa: `docs/mvp-defense-checklist.md`
+- Limitaciones conocidas: `docs/known-limitations.md`

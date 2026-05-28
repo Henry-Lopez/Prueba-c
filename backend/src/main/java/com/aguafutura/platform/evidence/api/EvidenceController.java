@@ -6,6 +6,7 @@ import com.aguafutura.platform.assets.domain.Asset;
 import com.aguafutura.platform.evidence.application.ListEvidenceUseCase;
 import com.aguafutura.platform.evidence.application.UploadEvidenceUseCase;
 import com.aguafutura.platform.evidence.domain.Evidence;
+import com.aguafutura.platform.evidence.domain.EvidenceType;
 import com.aguafutura.platform.evidence.domain.ReferenceType;
 import com.aguafutura.platform.incidents.application.ListIncidentsUseCase;
 import com.aguafutura.platform.incidents.domain.Incident;
@@ -57,6 +58,7 @@ public class EvidenceController {
     public ResponseEntity<EvidenceResponse> upload(
             @RequestParam("referenceType") ReferenceType referenceType,
             @RequestParam("referenceId") UUID referenceId,
+            @RequestParam(value = "evidenceType", required = false) EvidenceType evidenceType,
             @RequestParam("file") MultipartFile file,
             Authentication authentication,
             HttpServletRequest servletRequest
@@ -71,6 +73,7 @@ public class EvidenceController {
                 correlationId(servletRequest),
                 referenceType,
                 referenceId,
+                evidenceType != null ? evidenceType : defaultEvidenceType(referenceType),
                 file.getOriginalFilename(),
                 file.getContentType(),
                 file.getInputStream()
@@ -137,10 +140,21 @@ public class EvidenceController {
     // Endpoint to download/view the file directly
     @GetMapping("/download/{tenantId}/{fileName}")
     public ResponseEntity<Resource> downloadFile(
-            @PathVariable String tenantId,
-            @PathVariable String fileName
+            @PathVariable UUID tenantId,
+            @PathVariable String fileName,
+            Authentication authentication
     ) {
-        return fileResponse(Paths.get("uploads").resolve(tenantId).resolve(fileName).normalize());
+        UUID authenticatedTenantId = UUID.fromString(authentication.getDetails().toString());
+        if (!authenticatedTenantId.equals(tenantId)) {
+            throw new com.aguafutura.platform.core.application.ResourceNotFoundException("Evidence not found");
+        }
+
+        Path filePath = Paths.get("uploads").resolve(tenantId.toString()).resolve(fileName).normalize();
+        String metadataPath = "uploads/" + tenantId + "/" + fileName;
+        Evidence evidence = listEvidenceUseCase.findByTenantIdAndFilePath(tenantId, metadataPath)
+                .orElseThrow(() -> new com.aguafutura.platform.core.application.ResourceNotFoundException("Evidence not found"));
+
+        return fileResponse(Paths.get(evidence.getFilePath()).normalize());
     }
 
     private ResponseEntity<Resource> fileResponse(Path filePath) {
@@ -169,16 +183,25 @@ public class EvidenceController {
         // En un caso real, esto sería una URL pre-firmada de S3.
         // Aquí construimos una URL que apunte a nuestro endpoint de descarga local.
         String fileName = evidence.getFilePath().substring(evidence.getFilePath().lastIndexOf("/") + 1);
-        String url = "/api/v1/evidence/download/" + evidence.getTenantId() + "/" + fileName;
+        String url = "/api/v1/evidence/download/" + evidence.getId();
 
         return new EvidenceResponse(
                 evidence.getId(),
                 evidence.getReferenceType(),
                 evidence.getReferenceId(),
+                evidence.getEvidenceType(),
                 evidence.getFileName(),
                 url,
                 evidence.getCreatedAt()
         );
+    }
+
+    private EvidenceType defaultEvidenceType(ReferenceType referenceType) {
+        return switch (referenceType) {
+            case INCIDENT -> EvidenceType.INCIDENT_REPORT_PHOTO;
+            case WORK_ORDER -> EvidenceType.GENERAL_ATTACHMENT;
+            case ASSET -> EvidenceType.GENERAL_ATTACHMENT;
+        };
     }
 
     private ReferenceOptionResponse assetReferenceOption(Asset asset) {

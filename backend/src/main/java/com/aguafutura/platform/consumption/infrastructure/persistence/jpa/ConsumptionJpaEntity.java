@@ -27,6 +27,15 @@ public class ConsumptionJpaEntity {
     @Column(nullable = false)
     private String unit;
 
+    @Column(name = "original_value", precision = 19, scale = 4)
+    private BigDecimal originalValue;
+
+    @Column(name = "original_unit")
+    private String originalUnit;
+
+    @Column(name = "normalized_volume_m3", precision = 19, scale = 6)
+    private BigDecimal normalizedVolumeM3;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -40,6 +49,9 @@ public class ConsumptionJpaEntity {
             LocalDateTime readingDate,
             BigDecimal value,
             String unit,
+            BigDecimal originalValue,
+            String originalUnit,
+            BigDecimal normalizedVolumeM3,
             LocalDateTime createdAt
     ) {
         this.id = id;
@@ -48,6 +60,9 @@ public class ConsumptionJpaEntity {
         this.readingDate = readingDate;
         this.value = value;
         this.unit = unit;
+        this.originalValue = originalValue;
+        this.originalUnit = originalUnit;
+        this.normalizedVolumeM3 = normalizedVolumeM3;
         this.createdAt = createdAt;
     }
 
@@ -73,6 +88,18 @@ public class ConsumptionJpaEntity {
 
     public String getUnit() {
         return unit;
+    }
+
+    public BigDecimal getOriginalValue() {
+        return originalValue;
+    }
+
+    public String getOriginalUnit() {
+        return originalUnit;
+    }
+
+    public BigDecimal getNormalizedVolumeM3() {
+        return normalizedVolumeM3;
     }
 
     public LocalDateTime getCreatedAt() {

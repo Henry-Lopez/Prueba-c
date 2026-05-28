@@ -38,7 +38,8 @@ public class CreateWorkOrderUseCase {
             UUID assetId,
             UUID incidentId,
             String description,
-            WorkOrderPriority priority
+            WorkOrderPriority priority,
+            String assignedTo
     ) {
         if (assetId == null) {
             throw new IllegalArgumentException("Asset ID is required to create a Work Order");
@@ -58,6 +59,9 @@ public class CreateWorkOrderUseCase {
                 description,
                 priority
         );
+        if (assignedTo != null && !assignedTo.isBlank()) {
+            workOrder.assignTo(assignedTo);
+        }
 
         WorkOrder savedWorkOrder = repository.save(workOrder);
 

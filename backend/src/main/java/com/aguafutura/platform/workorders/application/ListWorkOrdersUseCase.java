@@ -17,4 +17,12 @@ public class ListWorkOrdersUseCase {
     public List<WorkOrder> execute(UUID tenantId) {
         return repository.findAllByTenantId(tenantId);
     }
+
+    public List<WorkOrder> executeForTechnician(UUID tenantId, String technicianEmail) {
+        if (technicianEmail == null || technicianEmail.isBlank()) {
+            return List.of();
+        }
+
+        return repository.findAllByTenantIdAndAssignedTo(tenantId, technicianEmail.trim());
+    }
 }

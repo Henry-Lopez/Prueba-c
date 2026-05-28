@@ -39,6 +39,16 @@ public class TenantJpaEntity {
     protected TenantJpaEntity() {
     }
 
+    public TenantJpaEntity(UUID id, String code, String name, String status) {
+        this.id = id;
+        this.code = code;
+        this.name = name;
+        this.status = status;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+        this.versionLock = 0;
+    }
+
     public Tenant toDomain() {
         return new Tenant(
                 id,
@@ -49,5 +59,17 @@ public class TenantJpaEntity {
                 updatedAt,
                 versionLock
         );
+    }
+
+    public static TenantJpaEntity fromDomain(Tenant tenant) {
+        TenantJpaEntity entity = new TenantJpaEntity();
+        entity.id = tenant.id();
+        entity.code = tenant.code();
+        entity.name = tenant.name();
+        entity.status = tenant.status();
+        entity.createdAt = tenant.createdAt() != null ? tenant.createdAt() : LocalDateTime.now();
+        entity.updatedAt = tenant.updatedAt() != null ? tenant.updatedAt() : LocalDateTime.now();
+        entity.versionLock = tenant.versionLock() != null ? tenant.versionLock() : 0;
+        return entity;
     }
 }

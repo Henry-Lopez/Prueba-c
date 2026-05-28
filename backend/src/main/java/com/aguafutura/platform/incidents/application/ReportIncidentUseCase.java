@@ -34,13 +34,23 @@ public class ReportIncidentUseCase {
             UUID assetId,
             String title,
             String description,
-            IncidentSeverity severity
+            IncidentSeverity severity,
+            UUID reporterUserId
     ) {
-        assetRepositoryPort.findByTenantIdAndId(tenantId, assetId)
+        UUID effectiveAssetId = assetId;
+        if (effectiveAssetId == null && "CITIZEN".equals(actorRole)) {
+            effectiveAssetId = assetRepositoryPort.findByTenantId(tenantId)
+                    .stream()
+                    .filter(asset -> Boolean.TRUE.equals(asset.getEnabled()))
+                    .findFirst()
+                    .orElseThrow(() -> new ResourceNotFoundException("Asset not found"))
+                    .getId();
+        }
+        assetRepositoryPort.findByTenantIdAndId(tenantId, effectiveAssetId)
                 .filter(asset -> Boolean.TRUE.equals(asset.getEnabled()))
                 .orElseThrow(() -> new ResourceNotFoundException("Asset not found"));
 
-        Incident incident = Incident.report(tenantId, assetId, title, description, severity);
+        Incident incident = Incident.report(tenantId, effectiveAssetId, title, description, severity, reporterUserId);
         Incident savedIncident = incidentRepositoryPort.save(incident);
 
         auditLogPort.save(AuditLog.create(

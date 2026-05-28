@@ -2,6 +2,7 @@ package com.aguafutura.platform.assets.bootstrap;
 
 import com.aguafutura.platform.assets.application.DisableAssetUseCase;
 import com.aguafutura.platform.assets.application.CreateAssetUseCase;
+import com.aguafutura.platform.assets.application.GetAssetUseCase;
 import com.aguafutura.platform.assets.application.ListAssetsUseCase;
 import com.aguafutura.platform.assets.application.UpdateAssetUseCase;
 import com.aguafutura.platform.assets.application.port.AssetRepositoryPort;
@@ -28,6 +29,11 @@ public class AssetsApplicationConfig {
     @Bean
     public ListAssetsUseCase listAssetsUseCase(AssetRepositoryPort assetRepositoryPort) {
         return new ListAssetsUseCase(assetRepositoryPort);
+    }
+
+    @Bean
+    public GetAssetUseCase getAssetUseCase(AssetRepositoryPort assetRepositoryPort) {
+        return new GetAssetUseCase(assetRepositoryPort);
     }
 
     @Bean

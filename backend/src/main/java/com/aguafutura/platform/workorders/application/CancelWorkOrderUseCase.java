@@ -18,11 +18,11 @@ public class CancelWorkOrderUseCase {
         this.auditLogPort = auditLogPort;
     }
 
-    public void execute(UUID tenantId, UUID actorId, String actorRole, String correlationId, UUID workOrderId) {
+    public void execute(UUID tenantId, UUID actorId, String actorRole, String correlationId, UUID workOrderId, String cancelReason) {
         WorkOrder workOrder = workOrderRepositoryPort.findByTenantIdAndId(tenantId, workOrderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Work order not found"));
 
-        workOrder.cancel();
+        workOrder.cancel(cancelReason);
         WorkOrder saved = workOrderRepositoryPort.save(workOrder);
 
         auditLogPort.save(AuditLog.create(

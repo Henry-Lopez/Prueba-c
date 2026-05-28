@@ -2,6 +2,7 @@ package com.aguafutura.platform.assets.api;
 
 import com.aguafutura.platform.assets.application.CreateAssetUseCase;
 import com.aguafutura.platform.assets.application.DisableAssetUseCase;
+import com.aguafutura.platform.assets.application.GetAssetUseCase;
 import com.aguafutura.platform.assets.application.ListAssetsUseCase;
 import com.aguafutura.platform.assets.application.UpdateAssetUseCase;
 import com.aguafutura.platform.assets.domain.Asset;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 public class AssetController {
 
     private final CreateAssetUseCase createAssetUseCase;
+    private final GetAssetUseCase getAssetUseCase;
     private final ListAssetsUseCase listAssetsUseCase;
     private final UpdateAssetUseCase updateAssetUseCase;
     private final DisableAssetUseCase disableAssetUseCase;
@@ -30,12 +32,14 @@ public class AssetController {
 
     public AssetController(
             CreateAssetUseCase createAssetUseCase,
+            GetAssetUseCase getAssetUseCase,
             ListAssetsUseCase listAssetsUseCase,
             UpdateAssetUseCase updateAssetUseCase,
             DisableAssetUseCase disableAssetUseCase,
             ZoneRepositoryPort zoneRepositoryPort
     ) {
         this.createAssetUseCase = createAssetUseCase;
+        this.getAssetUseCase = getAssetUseCase;
         this.listAssetsUseCase = listAssetsUseCase;
         this.updateAssetUseCase = updateAssetUseCase;
         this.disableAssetUseCase = disableAssetUseCase;
@@ -76,6 +80,17 @@ public class AssetController {
                 .toList();
 
         return ResponseEntity.ok(assets);
+    }
+
+    @GetMapping("/{assetId}")
+    public ResponseEntity<AssetResponse> getById(
+            @PathVariable UUID assetId,
+            Authentication authentication
+    ) {
+        UUID tenantId = UUID.fromString(authentication.getDetails().toString());
+        Asset asset = getAssetUseCase.execute(tenantId, assetId);
+
+        return ResponseEntity.ok(toResponse(asset, zonesById(tenantId)));
     }
 
     @PatchMapping("/{assetId}")

@@ -8,5 +8,6 @@ public record CreateWorkOrderRequest(
         UUID assetId,
         UUID incidentId,
         String description,
-        WorkOrderPriority priority
+        WorkOrderPriority priority,
+        String assignedTo
 ) {}

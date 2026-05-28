@@ -18,6 +18,11 @@ public class TenantPersistenceAdapter implements TenantRepositoryPort {
     }
 
     @Override
+    public Tenant save(Tenant tenant) {
+        return tenantJpaRepository.save(TenantJpaEntity.fromDomain(tenant)).toDomain();
+    }
+
+    @Override
     public List<Tenant> findAll() {
         return tenantJpaRepository.findAll()
                 .stream()
@@ -29,5 +34,10 @@ public class TenantPersistenceAdapter implements TenantRepositoryPort {
     public Optional<Tenant> findById(UUID id) {
         return tenantJpaRepository.findById(id)
                 .map(TenantJpaEntity::toDomain);
+    }
+
+    @Override
+    public boolean existsByCode(String code) {
+        return tenantJpaRepository.existsByCode(code);
     }
 }

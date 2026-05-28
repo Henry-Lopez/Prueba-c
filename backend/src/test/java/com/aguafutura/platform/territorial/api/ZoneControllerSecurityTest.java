@@ -73,8 +73,8 @@ class ZoneControllerSecurityTest {
     }
 
     @Test
-    void coordinatorCanEditZone() throws Exception {
-        assertCanEdit("COORDINATOR");
+    void coordinatorCannotEditZone() throws Exception {
+        assertCannotEdit("COORDINATOR");
     }
 
     @Test

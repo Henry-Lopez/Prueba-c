@@ -5,6 +5,7 @@ import com.aguafutura.platform.core.application.port.AuditLogPort;
 import com.aguafutura.platform.incidents.application.port.IncidentRepositoryPort;
 import com.aguafutura.platform.workorders.application.CancelWorkOrderUseCase;
 import com.aguafutura.platform.workorders.application.CreateWorkOrderUseCase;
+import com.aguafutura.platform.workorders.application.GetWorkOrderUseCase;
 import com.aguafutura.platform.workorders.application.ListWorkOrdersUseCase;
 import com.aguafutura.platform.workorders.application.UpdateWorkOrderUseCase;
 import com.aguafutura.platform.workorders.application.port.WorkOrderRepositoryPort;
@@ -27,6 +28,11 @@ public class WorkOrdersApplicationConfig {
     @Bean
     public ListWorkOrdersUseCase listWorkOrdersUseCase(WorkOrderRepositoryPort repositoryPort) {
         return new ListWorkOrdersUseCase(repositoryPort);
+    }
+
+    @Bean
+    public GetWorkOrderUseCase getWorkOrderUseCase(WorkOrderRepositoryPort repositoryPort) {
+        return new GetWorkOrderUseCase(repositoryPort);
     }
 
     @Bean

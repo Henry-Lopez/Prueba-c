@@ -23,4 +23,8 @@ public class ListEvidenceUseCase {
     public Optional<Evidence> findByTenantIdAndId(UUID tenantId, UUID evidenceId) {
         return repository.findByTenantIdAndId(tenantId, evidenceId);
     }
+
+    public Optional<Evidence> findByTenantIdAndFilePath(UUID tenantId, String filePath) {
+        return repository.findByTenantIdAndFilePath(tenantId, filePath);
+    }
 }

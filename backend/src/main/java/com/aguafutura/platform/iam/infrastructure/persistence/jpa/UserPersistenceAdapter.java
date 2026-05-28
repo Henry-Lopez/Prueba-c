@@ -6,6 +6,7 @@ import com.aguafutura.platform.iam.domain.UserRole;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -36,6 +37,27 @@ public class UserPersistenceAdapter implements UserRepositoryPort {
     public Optional<User> findByTenantIdAndEmail(UUID tenantId, String email) {
         return repository.findByTenantIdAndEmail(tenantId, email.toLowerCase().trim())
                 .map(this::toDomain);
+    }
+
+    @Override
+    public Optional<User> findByTenantIdAndId(UUID tenantId, UUID id) {
+        return repository.findByTenantIdAndId(tenantId, id).map(this::toDomain);
+    }
+
+    @Override
+    public List<User> findAllByTenantId(UUID tenantId) {
+        return repository.findByTenantIdOrderByCreatedAtDesc(tenantId)
+                .stream()
+                .map(this::toDomain)
+                .toList();
+    }
+
+    @Override
+    public List<User> findAllByTenantIdAndRole(UUID tenantId, UserRole role) {
+        return repository.findByTenantIdAndRoleOrderByFullNameAsc(tenantId, role.name())
+                .stream()
+                .map(this::toDomain)
+                .toList();
     }
 
     @Override

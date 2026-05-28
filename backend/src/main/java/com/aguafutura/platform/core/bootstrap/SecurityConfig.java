@@ -47,8 +47,6 @@ public class SecurityConfig {
                                 "/api/v1/ping",
                                 "/api/v1/core/test-error",
                                 "/tester.html",
-                                "/api/v1/tenants",
-                                "/api/v1/tenants/**",
                                 "/actuator/health",
                                 "/actuator/info",
                                 "/actuator/metrics",
@@ -58,17 +56,31 @@ public class SecurityConfig {
                                 "/v3/api-docs/**"
                         ).permitAll()
                         .requestMatchers("/api/v1/auth/me").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/tenants").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/tenants").hasRole("SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/tenants/**").hasRole("SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/tenants/**").hasRole("SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/users/technicians/workload")
+                        .hasAnyRole("SUPER_ADMIN", "ADMIN", "COORDINATOR", "AUDITOR")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/users", "/api/v1/users/**")
+                        .hasAnyRole("SUPER_ADMIN", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/users")
+                        .hasAnyRole("SUPER_ADMIN", "ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/users/**")
+                        .hasAnyRole("SUPER_ADMIN", "ADMIN")
                         .requestMatchers(HttpMethod.POST,
-                                "/api/v1/zones",
                                 "/api/v1/assets",
                                 "/api/v1/consumptions",
-                                "/api/v1/incidents",
                                 "/api/v1/work-orders"
                         ).hasAnyRole("ADMIN", "COORDINATOR")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/incidents")
+                        .hasAnyRole("ADMIN", "COORDINATOR", "CITIZEN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/zones")
+                        .hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/zones/**")
-                        .hasAnyRole("ADMIN", "COORDINATOR")
+                        .hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/zones/**")
-                        .hasAnyRole("ADMIN", "COORDINATOR")
+                        .hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH,
                                 "/api/v1/assets/**",
                                 "/api/v1/consumptions/**",
@@ -88,7 +100,7 @@ public class SecurityConfig {
                                 "/api/v1/consumptions/**",
                                 "/api/v1/incidents",
                                 "/api/v1/incidents/**"
-                        ).hasAnyRole("ADMIN", "COORDINATOR", "AUDITOR")
+                        ).hasAnyRole("ADMIN", "COORDINATOR", "AUDITOR", "CITIZEN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/work-orders", "/api/v1/work-orders/**")
                         .hasAnyRole("ADMIN", "COORDINATOR", "TECHNICIAN", "AUDITOR")
                         .requestMatchers(HttpMethod.POST, "/api/v1/evidence")
@@ -139,7 +151,9 @@ public class SecurityConfig {
 
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:5173",
-                "http://127.0.0.1:5173"
+                "http://127.0.0.1:5173",
+                "http://localhost:5175",
+                "http://127.0.0.1:5175"
         ));
 
         configuration.setAllowedMethods(List.of(

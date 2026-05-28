@@ -12,6 +12,8 @@ public class Consumption {
     private final LocalDateTime readingDate;
     private final BigDecimal value;
     private final UnitType unit;
+    private final BigDecimal originalValue;
+    private final UnitType originalUnit;
     private final LocalDateTime createdAt;
 
     public Consumption(
@@ -21,6 +23,8 @@ public class Consumption {
             LocalDateTime readingDate,
             BigDecimal value,
             UnitType unit,
+            BigDecimal originalValue,
+            UnitType originalUnit,
             LocalDateTime createdAt
     ) {
         if (id == null) throw new IllegalArgumentException("Consumption id is required");
@@ -36,6 +40,8 @@ public class Consumption {
         this.readingDate = readingDate;
         this.value = value;
         this.unit = unit;
+        this.originalValue = originalValue != null ? originalValue : value;
+        this.originalUnit = originalUnit != null ? originalUnit : unit;
         this.createdAt = createdAt;
     }
 
@@ -51,6 +57,8 @@ public class Consumption {
                 tenantId,
                 assetId,
                 readingDate,
+                normalizeToM3(value, unit),
+                UnitType.CUBIC_METERS,
                 value,
                 unit,
                 LocalDateTime.now()
@@ -63,10 +71,20 @@ public class Consumption {
                 tenantId,
                 assetId,
                 readingDate,
+                normalizeToM3(value, unit),
+                UnitType.CUBIC_METERS,
                 value,
                 unit,
                 createdAt
         );
+    }
+
+    public static BigDecimal normalizeToM3(BigDecimal value, UnitType unit) {
+        return switch (unit) {
+            case CUBIC_METERS -> value;
+            case LITERS -> value.divide(BigDecimal.valueOf(1000), 6, java.math.RoundingMode.HALF_UP);
+            case GALLONS -> value.multiply(BigDecimal.valueOf(0.00378541));
+        };
     }
 
     public UUID getId() {
@@ -91,6 +109,14 @@ public class Consumption {
 
     public UnitType getUnit() {
         return unit;
+    }
+
+    public BigDecimal getOriginalValue() {
+        return originalValue;
+    }
+
+    public UnitType getOriginalUnit() {
+        return originalUnit;
     }
 
     public LocalDateTime getCreatedAt() {

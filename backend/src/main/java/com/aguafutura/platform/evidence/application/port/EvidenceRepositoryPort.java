@@ -11,5 +11,6 @@ public interface EvidenceRepositoryPort {
     Evidence save(Evidence evidence);
     Optional<Evidence> findById(UUID id);
     Optional<Evidence> findByTenantIdAndId(UUID tenantId, UUID id);
+    Optional<Evidence> findByTenantIdAndFilePath(UUID tenantId, String filePath);
     List<Evidence> findAllByTenantIdAndReference(UUID tenantId, ReferenceType type, UUID referenceId);
 }

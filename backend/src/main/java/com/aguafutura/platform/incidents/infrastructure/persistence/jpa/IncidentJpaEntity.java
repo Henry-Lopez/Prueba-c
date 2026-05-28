@@ -29,6 +29,9 @@ public class IncidentJpaEntity {
     @Column(nullable = false)
     private String status;
 
+    @Column(name = "reporter_user_id")
+    private UUID reporterUserId;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -43,6 +46,7 @@ public class IncidentJpaEntity {
             String description,
             String severity,
             String status,
+            UUID reporterUserId,
             LocalDateTime createdAt
     ) {
         this.id = id;
@@ -52,6 +56,7 @@ public class IncidentJpaEntity {
         this.description = description;
         this.severity = severity;
         this.status = status;
+        this.reporterUserId = reporterUserId;
         this.createdAt = createdAt;
     }
 
@@ -81,6 +86,10 @@ public class IncidentJpaEntity {
 
     public String getStatus() {
         return status;
+    }
+
+    public UUID getReporterUserId() {
+        return reporterUserId;
     }
 
     public LocalDateTime getCreatedAt() {

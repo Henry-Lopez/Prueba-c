@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import com.aguafutura.platform.assets.application.ListAssetsUseCase;
 import com.aguafutura.platform.assets.domain.Asset;
 import com.aguafutura.platform.incidents.application.CloseIncidentUseCase;
+import com.aguafutura.platform.incidents.application.GetIncidentUseCase;
 import com.aguafutura.platform.incidents.application.ListIncidentsUseCase;
 import com.aguafutura.platform.incidents.application.ReportIncidentUseCase;
 import com.aguafutura.platform.incidents.application.UpdateIncidentUseCase;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 public class IncidentController {
 
     private final ReportIncidentUseCase reportIncidentUseCase;
+    private final GetIncidentUseCase getIncidentUseCase;
     private final ListIncidentsUseCase listIncidentsUseCase;
     private final ListAssetsUseCase listAssetsUseCase;
     private final UpdateIncidentUseCase updateIncidentUseCase;
@@ -30,12 +32,14 @@ public class IncidentController {
 
     public IncidentController(
             ReportIncidentUseCase reportIncidentUseCase,
+            GetIncidentUseCase getIncidentUseCase,
             ListIncidentsUseCase listIncidentsUseCase,
             ListAssetsUseCase listAssetsUseCase,
             UpdateIncidentUseCase updateIncidentUseCase,
             CloseIncidentUseCase closeIncidentUseCase
     ) {
         this.reportIncidentUseCase = reportIncidentUseCase;
+        this.getIncidentUseCase = getIncidentUseCase;
         this.listIncidentsUseCase = listIncidentsUseCase;
         this.listAssetsUseCase = listAssetsUseCase;
         this.updateIncidentUseCase = updateIncidentUseCase;
@@ -58,7 +62,8 @@ public class IncidentController {
                 request.assetId(),
                 request.title(),
                 request.description(),
-                request.severity()
+                request.severity(),
+                isCitizen(authentication) ? actorId(authentication) : null
         );
 
         IncidentResponse response = toResponse(incident, assetsById(tenantId));
@@ -73,12 +78,26 @@ public class IncidentController {
         UUID tenantId = UUID.fromString(authentication.getDetails().toString());
 
         Map<UUID, Asset> assetsById = assetsById(tenantId);
-        List<IncidentResponse> incidents = listIncidentsUseCase.execute(tenantId)
+        List<IncidentResponse> incidents = visibleIncidents(tenantId, authentication)
                 .stream()
                 .map(incident -> toResponse(incident, assetsById))
                 .toList();
 
         return ResponseEntity.ok(incidents);
+    }
+
+    @GetMapping("/{incidentId}")
+    public ResponseEntity<IncidentResponse> getById(
+            @PathVariable UUID incidentId,
+            Authentication authentication
+    ) {
+        UUID tenantId = UUID.fromString(authentication.getDetails().toString());
+        Incident incident = getIncidentUseCase.execute(tenantId, incidentId);
+        if (isCitizen(authentication) && !actorId(authentication).equals(incident.getReporterUserId())) {
+            throw new com.aguafutura.platform.core.application.ForbiddenOperationException("Citizen can only view own reports");
+        }
+
+        return ResponseEntity.ok(toResponse(incident, assetsById(tenantId)));
     }
 
     @PatchMapping("/{incidentId}")
@@ -135,6 +154,7 @@ public class IncidentController {
                 incident.getDescription(),
                 incident.getSeverity(),
                 incident.getStatus(),
+                incident.getReporterUserId(),
                 incident.getCreatedAt(),
                 asset != null ? asset.getName() : null,
                 asset != null ? asset.getCode() : null,
@@ -150,6 +170,23 @@ public class IncidentController {
 
     private UUID actorId(Authentication authentication) {
         return UUID.fromString(authentication.getName());
+    }
+
+    private boolean isCitizen(Authentication authentication) {
+        return authentication.getAuthorities()
+                .stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_CITIZEN"));
+    }
+
+    private List<Incident> visibleIncidents(UUID tenantId, Authentication authentication) {
+        List<Incident> incidents = listIncidentsUseCase.execute(tenantId);
+        if (!isCitizen(authentication)) {
+            return incidents;
+        }
+        UUID actorId = actorId(authentication);
+        return incidents.stream()
+                .filter(incident -> actorId.equals(incident.getReporterUserId()))
+                .toList();
     }
 
     private String actorRole(Authentication authentication) {

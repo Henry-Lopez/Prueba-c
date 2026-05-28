@@ -99,6 +99,9 @@ public class ConsumptionController {
                 consumption.getReadingDate(),
                 consumption.getValue(),
                 consumption.getUnit(),
+                consumption.getOriginalValue(),
+                consumption.getOriginalUnit(),
+                consumption.getValue(),
                 consumption.getCreatedAt()
         );
     }

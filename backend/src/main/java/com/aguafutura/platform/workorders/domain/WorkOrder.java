@@ -17,6 +17,8 @@ public class WorkOrder {
     
     private LocalDateTime scheduledAt;
     private LocalDateTime completedAt;
+    private LocalDateTime cancelledAt;
+    private String cancelReason;
     
     private final LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -32,6 +34,8 @@ public class WorkOrder {
             String assignedTo,
             LocalDateTime scheduledAt,
             LocalDateTime completedAt,
+            LocalDateTime cancelledAt,
+            String cancelReason,
             LocalDateTime createdAt,
             LocalDateTime updatedAt
     ) {
@@ -52,6 +56,8 @@ public class WorkOrder {
         this.assignedTo = assignedTo;
         this.scheduledAt = scheduledAt;
         this.completedAt = completedAt;
+        this.cancelledAt = cancelledAt;
+        this.cancelReason = cancelReason;
         this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
         this.updatedAt = updatedAt != null ? updatedAt : LocalDateTime.now();
     }
@@ -71,6 +77,8 @@ public class WorkOrder {
                 description,
                 WorkOrderStatus.PENDING,
                 priority,
+                null,
+                null,
                 null,
                 null,
                 null,
@@ -101,11 +109,16 @@ public class WorkOrder {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public void cancel() {
+    public void cancel(String reason) {
         if (this.status == WorkOrderStatus.COMPLETED) {
             throw new IllegalStateException("Cannot cancel a completed work order");
         }
+        if (reason == null || reason.isBlank()) {
+            throw new IllegalArgumentException("Cancel reason is required");
+        }
         this.status = WorkOrderStatus.CANCELLED;
+        this.cancelledAt = LocalDateTime.now();
+        this.cancelReason = reason.trim();
         this.updatedAt = LocalDateTime.now();
     }
 
@@ -116,12 +129,18 @@ public class WorkOrder {
             String assignedTo,
             LocalDateTime scheduledAt
     ) {
+        if (this.status == WorkOrderStatus.COMPLETED || this.status == WorkOrderStatus.CANCELLED) {
+            throw new IllegalStateException("Completed or cancelled work orders are read-only");
+        }
         if (description == null || description.isBlank()) throw new IllegalArgumentException("description cannot be blank");
         if (priority == null) throw new IllegalArgumentException("priority cannot be null");
         if (status == null) throw new IllegalArgumentException("status cannot be null");
 
         this.description = description.trim();
         this.priority = priority;
+        if (status == WorkOrderStatus.CANCELLED) {
+            throw new IllegalArgumentException("Use the cancellation endpoint to cancel with a reason");
+        }
         this.status = status;
         this.assignedTo = assignedTo == null || assignedTo.isBlank() ? null : assignedTo.trim();
         this.scheduledAt = scheduledAt;
@@ -142,6 +161,8 @@ public class WorkOrder {
     public String getAssignedTo() { return assignedTo; }
     public LocalDateTime getScheduledAt() { return scheduledAt; }
     public LocalDateTime getCompletedAt() { return completedAt; }
+    public LocalDateTime getCancelledAt() { return cancelledAt; }
+    public String getCancelReason() { return cancelReason; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

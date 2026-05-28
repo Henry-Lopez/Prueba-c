@@ -8,7 +8,11 @@ import java.util.UUID;
 
 public interface TenantRepositoryPort {
 
+    Tenant save(Tenant tenant);
+
     List<Tenant> findAll();
 
     Optional<Tenant> findById(UUID id);
+
+    boolean existsByCode(String code);
 }

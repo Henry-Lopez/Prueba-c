@@ -27,6 +27,8 @@ public class WorkOrderJpaEntity {
     
     private LocalDateTime scheduledAt;
     private LocalDateTime completedAt;
+    private LocalDateTime cancelledAt;
+    private String cancelReason;
     
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -45,6 +47,8 @@ public class WorkOrderJpaEntity {
         entity.assignedTo = domain.getAssignedTo();
         entity.scheduledAt = domain.getScheduledAt();
         entity.completedAt = domain.getCompletedAt();
+        entity.cancelledAt = domain.getCancelledAt();
+        entity.cancelReason = domain.getCancelReason();
         entity.createdAt = domain.getCreatedAt();
         entity.updatedAt = domain.getUpdatedAt();
         return entity;
@@ -62,6 +66,8 @@ public class WorkOrderJpaEntity {
                 this.assignedTo,
                 this.scheduledAt,
                 this.completedAt,
+                this.cancelledAt,
+                this.cancelReason,
                 this.createdAt,
                 this.updatedAt
         );

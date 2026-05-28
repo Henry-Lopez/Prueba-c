@@ -11,5 +11,6 @@ public interface WorkOrderRepositoryPort {
     Optional<WorkOrder> findById(UUID id);
     Optional<WorkOrder> findByTenantIdAndId(UUID tenantId, UUID id);
     List<WorkOrder> findAllByTenantId(UUID tenantId);
+    List<WorkOrder> findAllByTenantIdAndAssignedTo(UUID tenantId, String assignedTo);
     List<WorkOrder> findAllByAssetId(UUID assetId);
 }

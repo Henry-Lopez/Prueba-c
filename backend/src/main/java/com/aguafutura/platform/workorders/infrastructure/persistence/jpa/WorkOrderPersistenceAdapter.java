@@ -44,6 +44,13 @@ public class WorkOrderPersistenceAdapter implements WorkOrderRepositoryPort {
     }
 
     @Override
+    public List<WorkOrder> findAllByTenantIdAndAssignedTo(UUID tenantId, String assignedTo) {
+        return repository.findByTenantIdAndAssignedToIgnoreCaseOrderByCreatedAtDesc(tenantId, assignedTo).stream()
+                .map(WorkOrderJpaEntity::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<WorkOrder> findAllByAssetId(UUID assetId) {
         return repository.findByAssetIdOrderByCreatedAtDesc(assetId).stream()
                 .map(WorkOrderJpaEntity::toDomain)

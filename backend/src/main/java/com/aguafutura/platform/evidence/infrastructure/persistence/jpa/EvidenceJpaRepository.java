@@ -10,5 +10,6 @@ import java.util.UUID;
 @Repository
 public interface EvidenceJpaRepository extends JpaRepository<EvidenceJpaEntity, UUID> {
     Optional<EvidenceJpaEntity> findByTenantIdAndId(UUID tenantId, UUID id);
+    Optional<EvidenceJpaEntity> findByTenantIdAndFilePath(UUID tenantId, String filePath);
     List<EvidenceJpaEntity> findByTenantIdAndReferenceTypeAndReferenceIdOrderByCreatedAtDesc(UUID tenantId, String referenceType, UUID referenceId);
 }

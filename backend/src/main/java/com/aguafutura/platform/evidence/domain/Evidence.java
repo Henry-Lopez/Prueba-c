@@ -9,6 +9,7 @@ public class Evidence {
     private final UUID tenantId;
     private final ReferenceType referenceType;
     private final UUID referenceId;
+    private final EvidenceType evidenceType;
     
     private final String fileName;
     private final String contentType;
@@ -21,6 +22,7 @@ public class Evidence {
             UUID tenantId,
             ReferenceType referenceType,
             UUID referenceId,
+            EvidenceType evidenceType,
             String fileName,
             String contentType,
             String filePath,
@@ -37,6 +39,7 @@ public class Evidence {
         this.tenantId = tenantId;
         this.referenceType = referenceType;
         this.referenceId = referenceId;
+        this.evidenceType = evidenceType != null ? evidenceType : EvidenceType.GENERAL_ATTACHMENT;
         this.fileName = fileName;
         this.contentType = contentType;
         this.filePath = filePath;
@@ -47,6 +50,7 @@ public class Evidence {
             UUID tenantId,
             ReferenceType referenceType,
             UUID referenceId,
+            EvidenceType evidenceType,
             String fileName,
             String contentType,
             String filePath
@@ -56,6 +60,7 @@ public class Evidence {
                 tenantId,
                 referenceType,
                 referenceId,
+                evidenceType,
                 fileName,
                 contentType,
                 filePath,
@@ -67,6 +72,7 @@ public class Evidence {
     public UUID getTenantId() { return tenantId; }
     public ReferenceType getReferenceType() { return referenceType; }
     public UUID getReferenceId() { return referenceId; }
+    public EvidenceType getEvidenceType() { return evidenceType; }
     public String getFileName() { return fileName; }
     public String getContentType() { return contentType; }
     public String getFilePath() { return filePath; }

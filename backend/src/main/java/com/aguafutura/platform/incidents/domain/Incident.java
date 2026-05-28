@@ -12,6 +12,7 @@ public class Incident {
     private final String description;
     private final IncidentSeverity severity;
     private IncidentStatus status;
+    private final UUID reporterUserId;
     private final LocalDateTime createdAt;
 
     public Incident(
@@ -22,6 +23,7 @@ public class Incident {
             String description,
             IncidentSeverity severity,
             IncidentStatus status,
+            UUID reporterUserId,
             LocalDateTime createdAt
     ) {
         if (id == null) throw new IllegalArgumentException("Incident id is required");
@@ -39,6 +41,7 @@ public class Incident {
         this.description = description.trim();
         this.severity = severity;
         this.status = status;
+        this.reporterUserId = reporterUserId;
         this.createdAt = createdAt;
     }
 
@@ -47,7 +50,8 @@ public class Incident {
             UUID assetId,
             String title,
             String description,
-            IncidentSeverity severity
+            IncidentSeverity severity,
+            UUID reporterUserId
     ) {
         return new Incident(
                 UUID.randomUUID(),
@@ -57,6 +61,7 @@ public class Incident {
                 description,
                 severity,
                 IncidentStatus.OPEN,
+                reporterUserId,
                 LocalDateTime.now()
         );
     }
@@ -82,6 +87,7 @@ public class Incident {
                 description,
                 severity,
                 status,
+                reporterUserId,
                 createdAt
         );
     }
@@ -116,6 +122,10 @@ public class Incident {
 
     public IncidentStatus getStatus() {
         return status;
+    }
+
+    public UUID getReporterUserId() {
+        return reporterUserId;
     }
 
     public LocalDateTime getCreatedAt() {
